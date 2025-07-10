@@ -19,11 +19,19 @@ from __future__ import annotations
 import time
 from dataclasses import asdict, dataclass, fields
 from typing import Any, Dict, Optional, Union
+from enum import Enum
 
 import numpy
 
 from fastdeploy.engine.sampling_params import SamplingParams
 from fastdeploy.utils import data_processor_logger
+
+class RequestStatus(Enum):
+    WAITING = 0
+    PREFILL = 1
+    DECODE = 2
+    PREEMPTED = 3
+    FINISHED = 4
 
 
 @dataclass
@@ -90,6 +98,18 @@ class Request:
         self.multimodal_data = multimodal_data
 
         self.enable_thinking = enable_thinking
+
+        # token num
+        self.block_tables = []
+        self.output_token_ids = []
+        self.num_computed_tokens = 0
+        # status
+        self.status = RequestStatus.WAITING
+
+    
+    @property
+    def num_total_tokens(self):
+        return self.prompt_token_ids_len + len(self.output_token_ids)
 
     @classmethod
     def from_dict(cls, d: dict):

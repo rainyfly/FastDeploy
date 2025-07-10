@@ -281,6 +281,19 @@ class LLMEngine(object):
         which is only used in offline inference.
         """
         return self.scheduler.get_results()
+    
+    def _scheduler_task_to_worker_v1(self):
+        """
+        v1 scheduler logic
+        """
+        while self.running:
+            # 1. 判断是否当前有需要调度的请求
+
+            # 2. 调度请求
+
+            # 3. 将调度结果交给Worker
+            pass 
+
 
     def _insert_task_to_worker(self):
         """
