@@ -244,6 +244,12 @@ class PrefixCacheManager:
             f"allocate_gpu_blocks: {allocated_block_ids}, len(self.gpu_free_block_list) {len(self.gpu_free_block_list)}"
         )
         return allocated_block_ids
+    
+    def can_allocate_gpu_blocks(self, num_blocks):
+        if len(self.gpu_free_block_list) < num_blocks:
+            return False
+        else:
+            return True
 
     def recycle_gpu_blocks(self, gpu_block_ids):
         """

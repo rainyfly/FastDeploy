@@ -50,6 +50,7 @@ class TokenProcessor(object):
         self.cfg = cfg
         self.cached_generated_tokens = cached_generated_tokens
         self.resource_manager = None
+        self.scheduler = None
         self.engine_worker_queue = engine_worker_queue
         self.tokens_counter = Counter()
         self.split_connector = split_connector
@@ -91,6 +92,10 @@ class TokenProcessor(object):
 
         if hasattr(self, 'executor'):
             self.executor.shutdown(wait=False)
+    
+    def set_scheduler(self, scheduler):
+        assert self.scheduler is None, "The scheduler is not None, cannot set again."
+        self.scheduler = scheduler
 
     def set_resource_manager(self, resource_manager):
         """
@@ -360,6 +365,7 @@ class TokenProcessor(object):
                         self._record_completion_metrics(task, current_time)
                     self._recycle_resources(task_id, i, task, result,
                                             is_prefill)
+                    self.scheduler.finish_requests_async(task_id)
                     break
             if not is_prefill or self.cfg.scheduler_config.name == "splitwise":
                 batch_result.append(result)

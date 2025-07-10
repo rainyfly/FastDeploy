@@ -38,6 +38,7 @@ from fastdeploy.engine.args_utils import EngineArgs
 from fastdeploy.engine.expert_service import start_expert_service
 from fastdeploy.engine.request import Request, RequestOutput
 from fastdeploy.engine.resource_manager import ResourceManager
+from fastdeploy.engine.sched.scheduler import Scheduler
 from fastdeploy.input.preprocess import InputPreprocessor
 from fastdeploy.inter_communicator import (EngineCacheQueue, EngineWorkerQueue,
                                            IPCSignal, ZmqClient)
@@ -103,6 +104,9 @@ class LLMEngine(object):
         self.resource_manager = ResourceManager(cfg.max_num_seqs, cfg,
                                                 cfg.tensor_parallel_size,
                                                 cfg.splitwise_role)
+        self.scheduler_v1 = Scheduler(cfg.max_num_seqs, cfg,
+                                        cfg.tensor_parallel_size,
+                                        cfg.splitwise_role)
 
         os.environ['INFERENCE_MSG_QUEUE_ID'] = str(
             self.cfg.engine_worker_queue_port)
@@ -117,6 +121,7 @@ class LLMEngine(object):
             engine_worker_queue=self.engine_worker_queue,
             split_connector=self.split_connector)
         self.token_processor.set_resource_manager(self.resource_manager)
+        self.token_processor.set_scheduler(self.scheduler_v1)
 
         self.is_started = False
 
@@ -281,6 +286,42 @@ class LLMEngine(object):
         which is only used in offline inference.
         """
         return self.scheduler.get_results()
+    
+    def _scheduler_task_to_worker_v1(self):
+        """
+        v1 scheduler logic
+        """
+        while self.running:
+            try:
+                if self.engine_worker_queue.num_tasks() > 0:
+                    time.sleep(0.001)
+                    continue
+                if len(self.scheduler_v1.waiting) == 0:
+                    tasks = self.scheduler.get_requests(
+                        available_blocks=self.scheduler_v1.available_block_num(
+                        ),
+                        block_size=self.cfg.cache_config.block_size,
+                        reserved_output_blocks=self.cfg.cache_config.
+                        enc_dec_block_num,
+                        max_num_batched_tokens=self.cfg.max_num_batched_tokens,
+                        batch=self.scheduler_v1.available_batch())
+                        # 获取一些请求加入到调度队列
+                    for task in tasks:
+                        self.scheduler_v1.add_request(task)
+                # 2. 调度请求
+                tasks = self.scheduler_v1.schedule()
+                # 3. 发送给引擎
+                if tasks:
+                    self.scheduler_v1.get_real_bsz()
+                    self.engine_worker_queue.put_tasks((tasks, self.scheduler_v1.real_bsz))
+                else:
+                    time.sleep(0.001)
+                
+            except Exception as e:
+                err_msg = "Error happend while insert task to engine: {}, {}.".format(
+                    e, str(traceback.format_exc()))
+                llm_logger.error(err_msg)
+
 
     def _insert_task_to_worker(self):
         """
