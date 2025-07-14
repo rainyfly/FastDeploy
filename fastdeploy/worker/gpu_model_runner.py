@@ -772,10 +772,11 @@ class GPUModelRunner(ModelRunnerBase):
                 None,  # speculative decoding requires
                 self.parallel_config.max_model_len,
             )
+            print(f"hiddden_states shape: {hiddden_states.shape} value: {hiddden_states}")
 
             # 5. Execute spec decode
             logits = self.model.compute_logits(hiddden_states)
-
+            print(f"logits shape: {logits.shape} value: {logits}")
             if not self.speculative_decoding:
                 set_value_by_flags_and_idx(
                     self.share_inputs["pre_ids"],
@@ -788,6 +789,7 @@ class GPUModelRunner(ModelRunnerBase):
                 )
                 sampled_token_ids = self.sampler(logits,
                                                  self.sampling_metadata)
+                print(f"sampled_token_ids shape: {sampled_token_ids.shape} value: {sampled_token_ids}")
                 if self.parallel_config.tensor_parallel_degree > 1:
                     paddle.distributed.broadcast(sampled_token_ids, 0)
             else:
