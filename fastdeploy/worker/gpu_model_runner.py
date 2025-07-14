@@ -148,6 +148,104 @@ class GPUModelRunner(ModelRunnerBase):
 
         return self.guided_backend.get_logits_processor(
             schemata_key=schemata_key), schemata_key
+    
+    def insert_tasks_v1(self, req_dicts: List[Request]):
+        """
+        Process inputs for prefill tasks and insert it to share_inputs buffer
+        TODO(gongshaotian): Refactor this func
+        """
+        # NOTE(luotingdan): Lazy initialize kv cache
+        if "caches" not in self.share_inputs:
+            self.initialize_kv_cache()
+
+        req_len = len(req_dicts)
+        for i in range(req_len):
+            request = req_dicts[i]
+            idx = request.idx
+            if (request.task_type == 0): # prefill任务
+                prefill_start_index = request.prefill_start_index
+                prefill_end_index = request.prefill_end_index
+                length = prefill_end_index - prefill_start_index
+                self.share_inputs["input_ids"][idx:idx +
+                                               1, :length] = np.array(
+                                                   request.prompt_token_ids[prefill_start_index:prefill_end_index])
+                encoder_block_num = len(request.get("block_tables"))
+                self.share_inputs["encoder_block_lens"][idx:idx +
+                                                        1] = encoder_block_num
+                self.share_inputs["block_tables"][idx:idx + 1, :] = -1
+                self.share_inputs["block_tables"][
+                    idx:idx + 1, :encoder_block_num] = np.array(
+                        request.block_tables, dtype="int32")
+                self.share_inputs["stop_flags"][idx:idx + 1] = False
+                self.share_inputs['seq_lens_decoder'][
+                        idx:idx + 1] = prefill_start_index
+                self.share_inputs['seq_lens_this_time'][idx:idx +
+                                                        1] = length
+                self.share_inputs['seq_lens_encoder'][idx:idx + 1] = length
+            elif (request.task_type == 1): # decode任务
+                encoder_block_num = len(request.get("block_tables"))
+                self.share_inputs["encoder_block_lens"][idx:idx +
+                                                        1] = encoder_block_num
+                self.share_inputs["block_tables"][idx:idx + 1, :] = -1
+                self.share_inputs["block_tables"][
+                    idx:idx + 1, :encoder_block_num] = np.array(
+                        request.block_tables, dtype="int32")
+                continue
+            else:  # 被抢占任务
+                self.share_inputs["block_tables"][idx:idx + 1, :] = -1
+                self.share_inputs["stop_flags"][idx:idx + 1] = True
+                self.share_inputs['seq_lens_this_time'][idx:idx +
+                                                        1] = 0
+                self.share_inputs['seq_lens_decoder'][
+                        idx:idx + 1] = 0
+                self.share_inputs['seq_lens_encoder'][idx:idx + 1] = 0
+                self.share_inputs['is_block_step'][idx:idx + 1] = False
+                continue
+
+                
+            if len(request.eos_token_ids
+                   ) < self.parallel_config.eos_tokens_lens:
+                request.eos_token_ids.append(request.eos_token_ids[0])
+            self.share_inputs["eos_token_id"][:] = np.array(
+                request.eos_token_ids, dtype="int64").reshape(-1, 1)
+
+            self.share_inputs["top_p"][idx:idx + 1] = request.get("top_p", 0.7)
+            self.share_inputs["temperature"][idx:idx + 1] = request.get(
+                "temperature", 0.95)
+            self.share_inputs["penalty_score"][idx:idx + 1] = request.get(
+                "repetition_penalty", 1.0)
+            self.share_inputs["frequency_score"][idx:idx + 1] = request.get(
+                "frequency_penalty", 0.0)
+            self.share_inputs["presence_score"][idx:idx + 1] = request.get(
+                "presence_penalty", 0.0)
+
+            self.share_inputs["min_dec_len"][idx:idx + 1] = request.get(
+                "min_tokens", 1)
+            self.share_inputs["max_dec_len"][idx:idx + 1] = request.get(
+                "max_tokens", self.model_config.max_length)
+
+            self.share_inputs["first_token_ids"][
+                idx:idx + 1] = self.share_inputs["input_ids"][idx:idx + 1, :1]
+            self.share_inputs["ori_seq_lens_encoder"][idx:idx + 1] = length
+
+            if request.get("seed") is not None:
+                self.share_inputs["infer_seed"][idx:idx +
+                                                1] = request.get("seed")
+
+            if request.get("stop_token_ids") is not None and request.get(
+                    "stop_seqs_len") is not None:
+                stop_seqs_num = len(request.get("stop_seqs_len"))
+                for i in range(stop_seqs_num,
+                               self.model_config.max_stop_seqs_num):
+                    request.stop_seqs_len.append(0)
+                self.share_inputs["stop_seqs_len"][:] = np.array(
+                    request.stop_seqs_len, dtype="int32")
+                self.share_inputs["stop_seqs"][:stop_seqs_num, :len(
+                    request.get("stop_token_ids")[0])] = np.array(
+                        request.get("stop_token_ids"), dtype="int64")
+
+        self.share_inputs["not_need_stop"][0] = True
+
 
     def insert_prefill_inputs(self, req_dicts: List[Request]):
         """
@@ -961,6 +1059,149 @@ class GPUModelRunner(ModelRunnerBase):
             skip_idx_list.append(task.idx)
 
         return skip_idx_list
+    
+    def execute_model_v1(
+        self,
+        model_forward_batch: Optional[List[Request]] = None,
+    ) -> Optional[ModelRunnerOutput]:
+        """
+        The Entrance of model execute.
+        Args:
+            model_forward_batch: 'Request' contains information related to prompt and is an abstract
+            class at the server level, which is too granular for ModelRunner.
+            We plan to replace it with 'ModelForwardBatch'.
+            intermediate_tensors:
+        """
+        # Note(@wufeisheng): If `not_need_stop`` is False, it means the current worker is in an idle state.
+        # This logic is not used in TP (Tensor Parallelism) mode. However, in EP (Expert Parallelism) mode,
+        # when there is data on other runner, the current runner is required to execute part of the model.
+        if not self.not_need_stop():
+            self._execute_empty_input()
+            return None
+
+        # 1. Prepare inputs of model and decoder.
+        #    sampler create async operation
+        skip_idx_list = self._get_skip_idx(model_forward_batch)
+        self._prepare_inputs()
+        self.sampler.pre_process(skip_idx_list)
+
+        # 2. Padding inputs for cuda grph
+
+        # 3. Execute model
+        # TODO(gongshaotian): Use seq_lens_encoder to set is_decode_batch
+        is_decode_batch = not ((self.share_inputs["seq_lens_this_time"]
+                                > 1).sum() > 0)
+        self.forward_meta.step_use_cudagraph = self.use_cudagraph and is_decode_batch
+        self.forward_meta.is_decode_batch = is_decode_batch
+        model_output = self.model(
+            ids_remove_padding=self.share_inputs["ids_remove_padding"],
+            forward_meta=self.forward_meta)
+
+        hiddden_states = rebuild_padding(
+            model_output,
+            self.share_inputs["cum_offsets"],
+            self.share_inputs["seq_lens_this_time"],
+            self.share_inputs["seq_lens_decoder"],
+            self.share_inputs["seq_lens_encoder"],
+            self.share_inputs["output_padding_offset"]
+            if self.speculative_decoding else None,
+            self.parallel_config.max_model_len,
+        )
+
+        # 4. Compute logits, Sample
+        logits = self.model.compute_logits(hiddden_states)
+
+        if not self.speculative_decoding:
+            set_value_by_flags_and_idx(
+                self.share_inputs["pre_ids"],
+                self.share_inputs["input_ids"],
+                self.share_inputs["seq_lens_this_time"],
+                self.share_inputs["seq_lens_encoder"],
+                self.share_inputs["seq_lens_decoder"],
+                self.share_inputs["step_idx"],
+                self.share_inputs["stop_flags"],
+            )
+            sampled_token_ids = self.sampler(
+                logits,
+                self.sampling_metadata,
+                skip_idx_list,
+            )
+            if self.parallel_config.tensor_parallel_degree > 1:
+                paddle.distributed.broadcast(sampled_token_ids, 0)
+
+        else:
+            self.sampler(logits, self.sampling_metadata,
+                         self.parallel_config.max_model_len, self.share_inputs)
+            sampled_token_ids = None
+            if self.parallel_config.tensor_parallel_degree > 1:
+                paddle.distributed.broadcast(
+                    self.share_inputs["accept_tokens"], 0)
+                paddle.distributed.broadcast(self.share_inputs["accept_num"],
+                                             0)
+                paddle.distributed.broadcast(self.share_inputs["step_idx"], 0)
+                paddle.distributed.broadcast(self.share_inputs["stop_flags"],
+                                             0)
+
+        # 5. Post Process
+        model_output_data = ModelOutputData(
+            next_tokens=self.share_inputs["next_tokens"],
+            stop_flags=self.share_inputs["stop_flags"],
+            step_idx=self.share_inputs["step_idx"],
+            max_dec_len=self.share_inputs["max_dec_len"],
+            pre_ids=self.share_inputs["pre_ids"],
+            seq_lens_this_time=self.share_inputs["seq_lens_this_time"],
+            eos_token_id=self.share_inputs["eos_token_id"],
+            not_need_stop=self.share_inputs["not_need_stop"],
+            input_ids=self.share_inputs["input_ids"],
+            stop_nums=self.share_inputs["stop_nums"],
+            seq_lens_encoder=self.share_inputs["seq_lens_encoder"],
+            seq_lens_decoder=self.share_inputs["seq_lens_decoder"],
+            is_block_step=self.share_inputs["is_block_step"],
+            full_hidden_states=model_output,
+            msg_queue_id=self.parallel_config.msg_queue_id,
+            mp_rank=self.local_rank,
+            use_ep=self.parallel_config.use_ep,
+            draft_tokens=self.share_inputs["draft_tokens"]
+            if self.speculative_decoding else None,
+            actual_draft_token_num=self.share_inputs["actual_draft_token_num"]
+            if self.speculative_decoding else None,
+            accept_tokens=self.share_inputs["accept_tokens"]
+            if self.speculative_decoding else None,
+            accept_num=self.share_inputs["accept_num"]
+            if self.speculative_decoding else None)
+
+        if self.speculative_config.method in ["mtp"] and \
+            self.parallel_config.splitwise_role == "prefill":
+            skip_save_output = True
+        else:
+            skip_save_output = False
+        post_process(sampled_token_ids=sampled_token_ids,
+                     model_output=model_output_data,
+                     save_each_rank=self.parallel_config.use_ep,
+                     speculative_decoding=self.speculative_decoding,
+                     skip_save_output=skip_save_output)
+
+        # 6. Speculative decode
+        if self.speculative_decoding:
+            if self.speculative_method == "mtp":
+                self.proposer.run(full_hidden_states=model_output)
+            else:
+                self.proposer.run(share_inputs=self.share_inputs)
+
+        # 7. Updata 'infer_seed' and step_cuda()
+        self.share_inputs["infer_seed"].add_(self.infer_seed_increment)
+        self.share_inputs["infer_seed"][:] %= self.MAX_INFER_SEED
+        step_cuda(
+            self.share_inputs,
+            self.parallel_config.block_size,
+            self.parallel_config.enc_dec_block_num,
+            self.speculative_config,
+            self.parallel_config.enable_prefix_caching,
+        )
+
+        self._update_chunked_prefill(model_forward_batch)
+        self._add_cache(model_forward_batch)
+        return None
 
     def execute_model(
         self,

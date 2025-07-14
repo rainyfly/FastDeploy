@@ -55,9 +55,25 @@ class Scheduler:
     
     def get_new_block_nums(self, request: Request, num_new_tokens: int):
         return (request.num_computed_tokens + num_new_tokens + self.config.block_size - 1) // self.config.block_size - len(request.block_tables)
+    
+    def _prepare_prefill_task(self, request, new_token_num):
+        request.prefill_start_index = request.num_computed_tokens
+        request.prefill_end_index = request.num_computed_tokens + new_token_num 
+        request.task_type = 0
+        return request
+    
+    def _prepare_decode_task(self, request):
+        request.task_type = 1
+        return request
+    
+    def _prepare_preempt_task(self, request):
+        request.task_type = 2
+        return request
+
 
     def schedule(self):
         with self.lock:
+            scheduled_reqs: list[Request] = []
             scheduled_new_reqs: list[Request] = []
             scheduled_resumed_reqs: list[Request] = []
             scheduled_running_reqs: list[Request] = []
@@ -78,6 +94,7 @@ class Scheduler:
                             request.block_tables.extend(self.cache_manager.allocate_gpu_blocks(self.config.cache_config.enc_dec_block_num))
                             # 进入running list
                             scheduled_running_reqs.append(request)
+                            scheduled_reqs.append(self._prepare_decode_task(request))
                         else:
                             # 触发抢占
                             while True:
@@ -89,6 +106,7 @@ class Scheduler:
                                     self._free_blocks(preempted_req)  # 由于异步存在，抢占请求需要让推理不再推
                                     self.waiting.appendleft(preempted_req)
                                     preempted_reqs.append(preempted_req)
+                                    scheduled_reqs.append(self._prepare_preempt_task(preempted_req))
                                     if preempted_req == request:
                                         # No more request to preempt.
                                         can_schedule = False
@@ -102,7 +120,8 @@ class Scheduler:
                             # 分配解码下一轮的解码 block
                             request.block_tables.extend(self.cache_manager.allocate_gpu_blocks(self.config.cache_config.enc_dec_block_num))
                             # 进入running list
-                            scheduled_running_reqs.append(request)   
+                            scheduled_running_reqs.append(request)  
+                            scheduled_reqs.append(self._prepare_decode_task(request)) 
                         num_decoding_req_nums += 1
                         token_budget -= 1
                 else:  # 在Prefill
@@ -115,6 +134,7 @@ class Scheduler:
                         request.block_tables.extend(self.cache_manager.allocate_gpu_blocks(new_new_block))
                         # 进入running list
                         scheduled_running_reqs.append(request)
+                        scheduled_reqs.append(self._prepare_prefill_task(request, num_new_tokens)) 
                     else:
                         # 触发抢占
                         while True:
@@ -126,6 +146,7 @@ class Scheduler:
                                 self._free_blocks(preempted_req)  # 由于异步存在，抢占请求需要让推理不再推
                                 self.waiting.appendleft(preempted_req)
                                 preempted_reqs.append(preempted_req)
+                                scheduled_reqs.append(self._prepare_preempt_task(preempted_req))
                                 if preempted_req == request:
                                     # No more request to preempt.
                                     can_schedule = False
@@ -140,6 +161,7 @@ class Scheduler:
                         request.block_tables.extend(self.cache_manager.allocate_gpu_blocks(new_new_block))
                         # 进入running list
                         scheduled_running_reqs.append(request) 
+                        scheduled_reqs.append(self._prepare_prefill_task(request, num_new_tokens)) 
                     token_budget -= num_new_tokens
                     request.num_computed_tokens += num_new_tokens
                 req_index += 1
@@ -161,6 +183,7 @@ class Scheduler:
                             self.running.append(request)
                             # scheduled_new_reqs list
                             scheduled_new_reqs.append(request)
+                            scheduled_reqs.append(self._prepare_prefill_task(request, num_new_tokens)) 
                             token_budget -= num_new_tokens
                             request.num_computed_tokens += num_new_tokens
                             request.status = RequestStatus.RUNNING
@@ -182,12 +205,15 @@ class Scheduler:
                             self.running.append(request)
                             # scheduled_resumed_reqs list
                             scheduled_resumed_reqs.append(request)
+                            scheduled_reqs.append(self._prepare_prefill_task(request, num_new_tokens)) 
                             token_budget -= num_new_tokens
                             request.num_computed_tokens += num_new_tokens
                             request.status = RequestStatus.RUNNING
                         else:
                             break
-            # Todo: 处理请求字段，看如何和引擎互动
+            return scheduled_reqs
+
+
 
         
     def get_available_position(self) -> int:

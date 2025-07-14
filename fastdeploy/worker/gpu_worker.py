@@ -171,6 +171,11 @@ class GpuWorker(WorkerBase):
         """ """
         pass
 
+    def execute_model_v1(self, req_dicts: List[Request]) -> None:
+        """ """
+        output = self.model_runner.execute_model_v1(req_dicts)
+        return output
+
     def execute_model(
         self,
         model_forward_batch: Optional[List[Request]] = None,
@@ -184,7 +189,8 @@ class GpuWorker(WorkerBase):
         TODO(gongshaotian):The scheduler should schedule the handling of prefill,
         and workers and modelrunners should not perceive it.
         """
-        self.model_runner.insert_prefill_inputs(req_dicts=req_dicts)
+        # self.model_runner.insert_prefill_inputs(req_dicts=req_dicts)
+        self.model_runner.insert_tasks_v1(req_dicts)
 
     def graph_optimize_and_warm_up_model(self) -> None:
         """

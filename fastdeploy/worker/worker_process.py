@@ -302,7 +302,7 @@ class PaddleDisWorkerProc():
 
             # Execute model to generate token. The generated token will be written to the buffer.
             # These generated tokens can be obtained through get_output op.
-            self.worker.execute_model(req_dicts)
+            self.worker.execute_model_v1(req_dicts)
 
             self.exist_prefill_task_signal.value[
                 0] = self.worker.prefill_finished()
