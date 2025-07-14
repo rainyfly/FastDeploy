@@ -681,6 +681,64 @@ class GPUModelRunner(ModelRunnerBase):
             bad_words_token_ids=self.share_inputs["bad_tokens"],
             eos_token_ids=self.share_inputs["eos_token_id"],
         )
+    
+    def _prepare_inputs_v1(self) -> None:
+        """ prepare the model inputs """
+        # Remove padding
+        (
+            ids_remove_padding,
+            cum_offsets,
+            padding_offset,
+            cu_seqlens_q,
+            cu_seqlens_k,
+            output_cum_offsets,
+            output_padding_offset,
+        ) = pre_process(
+            self.parallel_config.max_model_len, self.share_inputs["input_ids"],
+            self.share_inputs["seq_lens_this_time"], self.speculative_decoding,
+            self.share_inputs["draft_tokens"] if self.speculative_decoding else
+            None, self.share_inputs["seq_lens_encoder"],
+            self.share_inputs["seq_lens_decoder"])
+
+        self.share_inputs["ids_remove_padding"].copy_(ids_remove_padding,
+                                                      False)
+        self.share_inputs["cum_offsets"].copy_(cum_offsets, False)
+        self.share_inputs["padding_offset"].copy_(padding_offset, False)
+        self.share_inputs["cu_seqlens_q"].copy_(cu_seqlens_q, False)
+        self.share_inputs["cu_seqlens_k"].copy_(cu_seqlens_k, False)
+
+        # For speculative decoding
+        if self.speculative_decoding:
+            self.share_inputs["output_cum_offsets"].copy_(
+                output_cum_offsets, False)
+            self.share_inputs["output_padding_offset"].copy_(
+                output_padding_offset, False)
+        
+        # resume decoding task if blocked
+        recover_decode_task(self.share_inputs["stop_flags"],
+             self.share_inputs["seq_lens_this_time"],
+             self.share_inputs["seq_lens_encoder"],
+             self.share_inputs["seq_lens_decoder"],
+             self.share_inputs["block_tables"],
+             self.share_inputs["is_block_step"])
+
+        # Initialize forward meta data
+        self.initialize_forward_meta()
+
+        # Get sampling metadata
+        self.sampling_metadata = SamplingMetadata(
+            temperature=self.share_inputs["temperature"],
+            top_p=self.share_inputs["top_p"],
+            step_idx=self.share_inputs["step_idx"],
+            pre_token_ids=self.share_inputs["pre_ids"],
+            frequency_penalties=self.share_inputs["frequency_score"],
+            presence_penalties=self.share_inputs["presence_score"],
+            repetition_penalties=self.share_inputs["penalty_score"],
+            min_dec_lens=self.share_inputs["min_dec_len"],
+            bad_words_token_ids=self.share_inputs["bad_tokens"],
+            eos_token_ids=self.share_inputs["eos_token_id"],
+        )
+
 
     def load_model(self) -> None:
         """ load or download model """
@@ -1082,7 +1140,7 @@ class GPUModelRunner(ModelRunnerBase):
         # 1. Prepare inputs of model and decoder.
         #    sampler create async operation
         skip_idx_list = self._get_skip_idx(model_forward_batch)
-        self._prepare_inputs()
+        self._prepare_inputs_v1()
         self.sampler.pre_process(skip_idx_list)
 
         # 2. Padding inputs for cuda grph
@@ -1175,11 +1233,13 @@ class GPUModelRunner(ModelRunnerBase):
             skip_save_output = True
         else:
             skip_save_output = False
-        post_process(sampled_token_ids=sampled_token_ids,
+        post_process_v1(sampled_token_ids=sampled_token_ids,
                      model_output=model_output_data,
                      save_each_rank=self.parallel_config.use_ep,
                      speculative_decoding=self.speculative_decoding,
-                     skip_save_output=skip_save_output)
+                     skip_save_output=skip_save_output,
+                     block_size = self.parallel_config.block_size,
+                     block_tables=self.share_inputs['block_tables'])
 
         # 6. Speculative decode
         if self.speculative_decoding:
@@ -1191,16 +1251,6 @@ class GPUModelRunner(ModelRunnerBase):
         # 7. Updata 'infer_seed' and step_cuda()
         self.share_inputs["infer_seed"].add_(self.infer_seed_increment)
         self.share_inputs["infer_seed"][:] %= self.MAX_INFER_SEED
-        step_cuda(
-            self.share_inputs,
-            self.parallel_config.block_size,
-            self.parallel_config.enc_dec_block_num,
-            self.speculative_config,
-            self.parallel_config.enable_prefix_caching,
-        )
-
-        self._update_chunked_prefill(model_forward_batch)
-        self._add_cache(model_forward_batch)
         return None
 
     def execute_model(

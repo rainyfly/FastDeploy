@@ -163,6 +163,60 @@ def post_process_normal(sampled_token_ids: paddle.Tensor,
             save_each_rank,  # save_each_rank
         )
 
+def post_process_normal_v1(sampled_token_ids: paddle.Tensor,
+                        model_output: ModelOutputData,
+                        save_each_rank: bool = False,
+                        skip_save_output: bool = False,
+                        block_size: int = 64,
+                        block_tables = None) -> None:
+    """ Post-processing steps after completing a single token generation. """
+    # 1. Set stop value
+    paddle.assign(
+        paddle.where(
+            model_output.stop_flags,
+            model_output.step_idx,
+            model_output.step_idx + 1,
+        ),
+        model_output.step_idx,
+    )
+    length_cond = paddle.greater_equal(model_output.step_idx,
+                                       model_output.max_dec_len)
+    paddle.assign(
+        paddle.logical_or(model_output.stop_flags, length_cond),
+        model_output.stop_flags,
+    )
+    # TODO(gongshaotian): Add use_stop_seqs
+    set_stop_value_multi_ends(sampled_token_ids, model_output.stop_flags,
+                              model_output.seq_lens_this_time,
+                              model_output.eos_token_id,
+                              model_output.next_tokens, False)  # multi ends
+
+    # 2. Update the input buffer of the model
+    with paddle.framework._no_check_dy2st_diff():
+        update_inputs_v1(model_output.stop_flags,
+                   model_output.not_need_stop,
+                   model_output.seq_lens_this_time,
+                   model_output.seq_lens_encoder,
+                   model_output.seq_lens_decoder,
+                   prompt_lens,
+                   sampled_token_ids,
+                   model_output.input_ids,
+                   block_tables,
+                   model_output.stop_nums,
+                   model_output.next_tokens,
+                   model_output.is_block_step,
+                   block_size
+                   )
+    # 3. Transmit the model's output and stop generation signal via message queue.
+    #    In the future, we will abandon this approach.
+    if not skip_save_output:
+        save_output(
+            sampled_token_ids,
+            model_output.not_need_stop,
+            model_output.mp_rank,
+            save_each_rank,  # save_each_rank
+        )
+
 
 def post_process_specualate(model_output, skip_save_output: bool = False):
     """"""
@@ -205,6 +259,21 @@ def post_process_specualate(model_output, skip_save_output: bool = False):
         model_output.step_idx,
     )
 
+
+def post_process_v1(sampled_token_ids: paddle.Tensor,
+                 model_output: ModelOutputData,
+                 save_each_rank: bool = False,
+                 speculative_decoding: bool = False,
+                 skip_save_output: bool = False,
+                 block_size: int = 64,
+                 block_tables = None) -> None:
+    """ Post-processing steps after completing a single token generation. """
+    post_process_normal_v1(sampled_token_ids,
+                        model_output,
+                        save_each_rank,
+                        skip_save_output,
+                        block_size,
+                        block_tables)
 
 def post_process(sampled_token_ids: paddle.Tensor,
                  model_output: ModelOutputData,

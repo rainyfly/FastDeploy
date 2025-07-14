@@ -24,7 +24,7 @@ __global__ void update_inputs_kernel_v1(bool *not_need_stop,
                                      int64_t *input_ids,
                                      int *block_tables,
                                      const int64_t *stop_nums,
-                                     const bool *stop_flags,
+                                     bool *stop_flags,
                                      bool *is_block_step,
                                      const int64_t *next_tokens,
                                      const int bsz,
@@ -71,7 +71,7 @@ __global__ void update_inputs_kernel_v1(bool *not_need_stop,
             {
                 stop_flags[thread_idx] = true;
                 seq_lens_this_time[thread_idx] = 0;
-                topk_ids[idx] = -1;
+                topk_ids[thread_idx] = -1;
                 stop_flag_now_int = 1;
             }
         }
@@ -117,8 +117,8 @@ void UpdateInputesV1(const paddle::Tensor &stop_flags,
         const_cast<int64_t *>(input_ids.data<int64_t>()),
         const_cast<int *>(block_tables.data<int>()),
         stop_nums.data<int64_t>(),
-        stop_flags.data<bool>(),
-        is_block_step.data<bool>(),
+        const_cast<bool *>(stop_flags.data<bool>()),
+        const_cast<bool *>(is_block_step.data<bool>()),
         next_tokens.data<int64_t>(),
         now_bsz,
         max_bsz,
