@@ -28,6 +28,7 @@ import traceback
 import uuid
 import weakref
 from typing import Dict, List, Optional, Tuple
+from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 import paddle
@@ -48,6 +49,7 @@ from fastdeploy.output.token_processor import (TokenProcessor,
                                                WarmUpTokenProcessor)
 from fastdeploy.splitwise.splitwise_connector import SplitwiseConnector
 from fastdeploy.utils import EngineError, console_logger, llm_logger
+
 
 
 class LLMEngine(object):
@@ -293,13 +295,12 @@ class LLMEngine(object):
         """
         v1 scheduler logic
         """
-        while self.running:
-            try:
-                if self.engine_worker_queue.num_tasks() > 0:
-                    time.sleep(0.001)
-                    continue
-                if len(self.scheduler_v1.waiting) == 0:
-                    tasks = self.scheduler.get_requests(
+        get_request_pool = ThreadPoolExecutor(max_workers=1)
+        is_fetching = False
+        def _fetch_request():
+            nonlocal is_fetching
+            is_fetching = True
+            tasks = self.scheduler.get_requests(
                         available_blocks=self.scheduler_v1.available_block_num(
                         ),
                         block_size=self.cfg.cache_config.block_size,
@@ -308,8 +309,16 @@ class LLMEngine(object):
                         max_num_batched_tokens=self.cfg.max_num_batched_tokens,
                         batch=self.scheduler_v1.available_batch())
                         # 获取一些请求加入到调度队列
-                    for task in tasks:
-                        self.scheduler_v1.add_request(task)
+            for task in tasks:
+                self.scheduler_v1.add_request(task)
+            is_fetching = False
+        while self.running:
+            try:
+                if self.engine_worker_queue.num_tasks() > 0:
+                    time.sleep(0.001)
+                    continue
+                if len(self.scheduler_v1.waiting) == 0 and (not is_fetching):
+                    get_request_pool.submit(_fetch_request)
                 # 2. 调度请求
                 tasks = self.scheduler_v1.schedule()
                 # 3. 发送给引擎
@@ -317,7 +326,7 @@ class LLMEngine(object):
                     self.scheduler_v1.get_real_bsz()
                     self.engine_worker_queue.put_tasks((tasks, self.scheduler_v1.real_bsz))
                 else:
-                    time.sleep(0.001)
+                    time.sleep(0.005)
                 
             except Exception as e:
                 err_msg = "Error happend while insert task to engine: {}, {}.".format(

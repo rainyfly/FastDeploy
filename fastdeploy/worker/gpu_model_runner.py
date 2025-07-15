@@ -1153,7 +1153,6 @@ class GPUModelRunner(ModelRunnerBase):
         # 1. Prepare inputs of model and decoder.
         #    sampler create async operation
         skip_idx_list = self._get_skip_idx(model_forward_batch)
-        print("Prepare_inputs_v1")
         self._prepare_inputs_v1()
         self.sampler.pre_process(skip_idx_list)
         # 2. Padding inputs for cuda grph
