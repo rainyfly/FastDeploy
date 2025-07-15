@@ -37,7 +37,7 @@ else:
         speculate_save_output, speculate_set_value_by_flags_and_idx,
         speculate_step_paddle, speculate_step_system_cache,
         speculate_update_v3, step_paddle, step_system_cache, update_inputs,
-        step_reschedule)
+        step_reschedule, update_inputs_v1)
 from fastdeploy.worker.output import ModelOutputData
 
 DISABLE_RECOVER = (envs.FD_DISABLED_RECOVER == "1")
@@ -164,11 +164,13 @@ def post_process_normal(sampled_token_ids: paddle.Tensor,
         )
 
 def post_process_normal_v1(sampled_token_ids: paddle.Tensor,
+                        prompt_lens: paddle.Tensor,
                         model_output: ModelOutputData,
                         save_each_rank: bool = False,
                         skip_save_output: bool = False,
                         block_size: int = 64,
-                        block_tables = None) -> None:
+                        block_tables = None,
+                        step_seq_lens_decoder = None) -> None:
     """ Post-processing steps after completing a single token generation. """
     # 1. Set stop value
     paddle.assign(
@@ -192,12 +194,14 @@ def post_process_normal_v1(sampled_token_ids: paddle.Tensor,
                               model_output.next_tokens, False)  # multi ends
 
     # 2. Update the input buffer of the model
+    # print(f"before update_input_v1: seq_lens_this_time {model_output.seq_lens_this_time} seq_lens_encoder {model_output.seq_lens_encoder} seq_lens_decoder {model_output.seq_lens_decoder} block_tables {block_tables}")
     with paddle.framework._no_check_dy2st_diff():
         update_inputs_v1(model_output.stop_flags,
                    model_output.not_need_stop,
                    model_output.seq_lens_this_time,
                    model_output.seq_lens_encoder,
                    model_output.seq_lens_decoder,
+                   step_seq_lens_decoder,
                    prompt_lens,
                    sampled_token_ids,
                    model_output.input_ids,
@@ -207,6 +211,7 @@ def post_process_normal_v1(sampled_token_ids: paddle.Tensor,
                    model_output.is_block_step,
                    block_size
                    )
+        # print(f"after update_input_v1: seq_lens_this_time {model_output.seq_lens_this_time} seq_lens_encoder {model_output.seq_lens_encoder} seq_lens_decoder {model_output.seq_lens_decoder} block_tables {block_tables}")
     # 3. Transmit the model's output and stop generation signal via message queue.
     #    In the future, we will abandon this approach.
     if not skip_save_output:
@@ -261,19 +266,23 @@ def post_process_specualate(model_output, skip_save_output: bool = False):
 
 
 def post_process_v1(sampled_token_ids: paddle.Tensor,
+                 prompt_lens: paddle.Tensor,
                  model_output: ModelOutputData,
                  save_each_rank: bool = False,
                  speculative_decoding: bool = False,
                  skip_save_output: bool = False,
                  block_size: int = 64,
-                 block_tables = None) -> None:
+                 block_tables = None,
+                 step_seq_lens_decoder = None) -> None:
     """ Post-processing steps after completing a single token generation. """
     post_process_normal_v1(sampled_token_ids,
+                        prompt_lens,
                         model_output,
                         save_each_rank,
                         skip_save_output,
                         block_size,
-                        block_tables)
+                        block_tables,
+                        step_seq_lens_decoder)
 
 def post_process(sampled_token_ids: paddle.Tensor,
                  model_output: ModelOutputData,

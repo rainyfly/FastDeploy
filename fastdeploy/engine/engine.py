@@ -207,8 +207,10 @@ class LLMEngine(object):
 
         self.token_processor.tasks_queue = self.engine_worker_queue
 
-        self.insert_task_to_worker_thread = threading.Thread(
-            target=self._insert_task_to_worker, daemon=True)
+        # self.insert_task_to_worker_thread = threading.Thread(
+        #     target=self._insert_task_to_worker, daemon=True)
+        # self.insert_task_to_worker_thread.start()
+        self.insert_task_to_worker_thread = threading.Thread(target=self._scheduler_task_to_worker_v1, daemon=True)
         self.insert_task_to_worker_thread.start()
 
         if self.api_server_pid is not None:
@@ -321,6 +323,11 @@ class LLMEngine(object):
                 err_msg = "Error happend while insert task to engine: {}, {}.".format(
                     e, str(traceback.format_exc()))
                 llm_logger.error(err_msg)
+            except BaseException as e:
+                err_msg = "BaseException Error happend while insert task to engine: {}, {}.".format(
+                    e, str(traceback.format_exc()))
+                llm_logger.error(err_msg)
+
 
 
     def _insert_task_to_worker(self):

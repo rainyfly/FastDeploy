@@ -104,6 +104,8 @@ class Request:
         self.num_computed_tokens = 0
         # status
         self.status = RequestStatus.WAITING
+        self.idx = None
+        self.task_type = None
 
     
     @property
@@ -192,7 +194,8 @@ class Request:
                 f"prompt={self.prompt!r}, "
                 f"prompt_token_ids={self.prompt_token_ids}, "
                 f"draft_token_ids={self.draft_token_ids}, "
-                f"sampling_params={self.sampling_params})")
+                f"sampling_params={self.sampling_params}), "
+                f"idx={self.idx}, task_type={self.task_type} block_tables={self.block_tables}")
 
 
 @dataclass

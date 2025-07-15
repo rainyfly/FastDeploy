@@ -19,6 +19,7 @@ __global__ void update_inputs_kernel_v1(bool *not_need_stop,
                                      int *seq_lens_this_time,
                                      int *seq_lens_encoder,
                                      int *seq_lens_decoder,
+                                     int *step_seq_lens_decoder,
                                      int *prompt_lens,
                                      int64_t *topk_ids,
                                      int64_t *input_ids,
@@ -60,15 +61,21 @@ __global__ void update_inputs_kernel_v1(bool *not_need_stop,
 
                 // 调度判断
                 int *block_table_now = block_tables + thread_idx * block_num_per_seq;
+                // printf("judge block table thread_idx %d: seq_lens_decoder %d block_size %d block table index: %d \n", thread_idx, seq_lens_decoder[thread_idx], block_size, seq_lens_decoder[thread_idx] / block_size);
                 if (seq_lens_this_time[thread_idx] != 0 && block_table_now[seq_lens_decoder[thread_idx] / block_size] == -1) {
                     // 需要服务层做调度
+                    // printf("set block step %d \n", thread_idx);
                     is_block_step[thread_idx] = true;
                     seq_lens_this_time[thread_idx]= 0;
                     stop_flags[thread_idx] = true;
+                    step_seq_lens_decoder[thread_idx] = seq_lens_decoder[thread_idx];
+                    seq_lens_decoder[thread_idx] = 0;
                     stop_flag_now_int = 1;
+                    // printf("set block step done %d \n", thread_idx);
                 }
             } else
             {
+                // printf("enter prefill phase", thread_idx);
                 stop_flags[thread_idx] = true;
                 seq_lens_this_time[thread_idx] = 0;
                 topk_ids[thread_idx] = -1;
@@ -77,9 +84,13 @@ __global__ void update_inputs_kernel_v1(bool *not_need_stop,
         }
     }
     __syncthreads();
+    // printf("Block reduce %d \n", thread_idx);
     int64_t stop_sum = BlockReduce(temp_storage).Sum(stop_flag_now_int);
+    // printf("Block reduce Done %d \n", thread_idx);
     if (thread_idx == 0) {
+        // printf("Set not_need_stop %d \n", thread_idx);
         not_need_stop[0] = stop_sum < stop_nums[0];
+        // printf("Set not_need_stop done %d \n", thread_idx);
     }
 }
 
@@ -88,6 +99,7 @@ void UpdateInputesV1(const paddle::Tensor &stop_flags,
                    const paddle::Tensor &seq_lens_this_time,
                    const paddle::Tensor &seq_lens_encoder,
                    const paddle::Tensor &seq_lens_decoder,
+                   const paddle::Tensor &step_seq_lens_decoder,
                    const paddle::Tensor &prompt_lens,
                    const paddle::Tensor &topk_ids,
                    const paddle::Tensor &input_ids,
@@ -112,6 +124,7 @@ void UpdateInputesV1(const paddle::Tensor &stop_flags,
         const_cast<int *>(seq_lens_this_time.data<int>()),
         const_cast<int *>(seq_lens_encoder.data<int>()),
         const_cast<int *>(seq_lens_decoder.data<int>()),
+        const_cast<int *>(step_seq_lens_decoder.data<int>()),
         const_cast<int *>(prompt_lens.data<int>()),
         const_cast<int64_t *>(topk_ids.data<int64_t>()),
         const_cast<int64_t *>(input_ids.data<int64_t>()),
@@ -137,6 +150,7 @@ PD_BUILD_STATIC_OP(update_inputs_v1)
              "seq_lens_this_time",
              "seq_lens_encoder",
              "seq_lens_decoder",
+             "step_seq_lens_decoder",
              "prompt_lens",
              "topk_ids",
              "input_ids",
@@ -149,6 +163,7 @@ PD_BUILD_STATIC_OP(update_inputs_v1)
               "seq_lens_this_time_out",
               "seq_lens_encoder_out",
               "seq_lens_decoder_out",
+              "step_seq_lens_decoder_out",
               "topk_ids_out",
               "input_ids_out",
               "stop_flags_out",
@@ -160,5 +175,6 @@ PD_BUILD_STATIC_OP(update_inputs_v1)
                     {"topk_ids", "topk_ids_out"},
                     {"input_ids", "input_ids_out"},
                     {"stop_flags", "stop_flags_out"},
+                    {"step_seq_lens_decoder", "step_seq_lens_decoder_out"},
                     {"is_block_step", "is_block_step_out"}})
     .SetKernelFn(PD_KERNEL(UpdateInputesV1));

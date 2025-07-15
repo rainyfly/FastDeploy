@@ -36,8 +36,10 @@ from fastdeploy.model_executor.layers.sample.sampler import (
     Sampler, SpeculativeSampler)
 from fastdeploy.model_executor.model_loader import get_model_from_loader
 from fastdeploy.model_executor.ops.gpu import (set_value_by_flags_and_idx,
-                                               share_external_data)
+                                               share_external_data,
+                                               recover_decode_task)
 from fastdeploy.model_executor.pre_and_post_process import (post_process,
+                                                            post_process_v1,
                                                             pre_process,
                                                             rebuild_padding,
                                                             step_cuda)
@@ -163,6 +165,7 @@ class GPUModelRunner(ModelRunnerBase):
             request = req_dicts[i]
             idx = request.idx
             if (request.task_type == 0): # prefill任务
+                print(f"handle prefill task {request} idx: {idx}")
                 prefill_start_index = request.prefill_start_index
                 prefill_end_index = request.prefill_end_index
                 length = prefill_end_index - prefill_start_index
@@ -182,7 +185,9 @@ class GPUModelRunner(ModelRunnerBase):
                 self.share_inputs['seq_lens_this_time'][idx:idx +
                                                         1] = length
                 self.share_inputs['seq_lens_encoder'][idx:idx + 1] = length
+                self.share_inputs['prompt_lens'][idx:idx + 1] = len(request.prompt_token_ids)
             elif (request.task_type == 1): # decode任务
+                print(f"handle decode task {request} idx: {idx}")
                 encoder_block_num = len(request.get("block_tables"))
                 self.share_inputs["encoder_block_lens"][idx:idx +
                                                         1] = encoder_block_num
@@ -192,6 +197,7 @@ class GPUModelRunner(ModelRunnerBase):
                         request.block_tables, dtype="int32")
                 continue
             else:  # 被抢占任务
+                print(f"handle preempted task {request} idx: {idx}")
                 self.share_inputs["block_tables"][idx:idx + 1, :] = -1
                 self.share_inputs["stop_flags"][idx:idx + 1] = True
                 self.share_inputs['seq_lens_this_time'][idx:idx +
@@ -445,6 +451,10 @@ class GPUModelRunner(ModelRunnerBase):
             [max_num_seqs, self.parallel_config.max_model_len],
             self.parallel_config.pad_token_id,
             dtype='int64')
+        self.share_inputs["prompt_lens"] = paddle.full(
+            [max_num_seqs, 1],
+            0,
+            dtype='int32')
         self.share_inputs["eos_token_id"] = paddle.full(
             [self.parallel_config.eos_tokens_lens, 1], 0, dtype='int64')
         self.share_inputs["top_p"] = paddle.full([max_num_seqs, 1],
@@ -684,6 +694,17 @@ class GPUModelRunner(ModelRunnerBase):
     
     def _prepare_inputs_v1(self) -> None:
         """ prepare the model inputs """
+        # resume decoding task if blocked
+        recover_decode_task(self.share_inputs["stop_flags"],
+             self.share_inputs["seq_lens_this_time"],
+             self.share_inputs["seq_lens_encoder"],
+             self.share_inputs["seq_lens_decoder"],
+             self.share_inputs["step_seq_lens_decoder"],
+             self.share_inputs["block_tables"],
+             self.share_inputs["is_block_step"],
+             self.parallel_config.block_size
+             )
+
         # Remove padding
         (
             ids_remove_padding,
@@ -713,14 +734,6 @@ class GPUModelRunner(ModelRunnerBase):
                 output_cum_offsets, False)
             self.share_inputs["output_padding_offset"].copy_(
                 output_padding_offset, False)
-        
-        # resume decoding task if blocked
-        recover_decode_task(self.share_inputs["stop_flags"],
-             self.share_inputs["seq_lens_this_time"],
-             self.share_inputs["seq_lens_encoder"],
-             self.share_inputs["seq_lens_decoder"],
-             self.share_inputs["block_tables"],
-             self.share_inputs["is_block_step"])
 
         # Initialize forward meta data
         self.initialize_forward_meta()
@@ -928,11 +941,11 @@ class GPUModelRunner(ModelRunnerBase):
                 None,  # speculative decoding requires
                 self.parallel_config.max_model_len,
             )
-            print(f"hiddden_states shape: {hiddden_states.shape} value: {hiddden_states}")
+            # print(f"hiddden_states shape: {hiddden_states.shape} value: {hiddden_states}")
 
             # 5. Execute spec decode
             logits = self.model.compute_logits(hiddden_states)
-            print(f"logits shape: {logits.shape} value: {logits}")
+            # print(f"logits shape: {logits.shape} value: {logits}")
             if not self.speculative_decoding:
                 set_value_by_flags_and_idx(
                     self.share_inputs["pre_ids"],
@@ -1140,9 +1153,9 @@ class GPUModelRunner(ModelRunnerBase):
         # 1. Prepare inputs of model and decoder.
         #    sampler create async operation
         skip_idx_list = self._get_skip_idx(model_forward_batch)
+        print("Prepare_inputs_v1")
         self._prepare_inputs_v1()
         self.sampler.pre_process(skip_idx_list)
-
         # 2. Padding inputs for cuda grph
 
         # 3. Execute model
@@ -1186,7 +1199,6 @@ class GPUModelRunner(ModelRunnerBase):
             )
             if self.parallel_config.tensor_parallel_degree > 1:
                 paddle.distributed.broadcast(sampled_token_ids, 0)
-
         else:
             self.sampler(logits, self.sampling_metadata,
                          self.parallel_config.max_model_len, self.share_inputs)
@@ -1234,12 +1246,14 @@ class GPUModelRunner(ModelRunnerBase):
         else:
             skip_save_output = False
         post_process_v1(sampled_token_ids=sampled_token_ids,
+                     prompt_lens=self.share_inputs['prompt_lens'],
                      model_output=model_output_data,
                      save_each_rank=self.parallel_config.use_ep,
                      speculative_decoding=self.speculative_decoding,
                      skip_save_output=skip_save_output,
                      block_size = self.parallel_config.block_size,
-                     block_tables=self.share_inputs['block_tables'])
+                     block_tables=self.share_inputs['block_tables'],
+                     step_seq_lens_decoder=self.share_inputs['step_seq_lens_decoder'])
 
         # 6. Speculative decode
         if self.speculative_decoding:

@@ -111,6 +111,7 @@ class TokenProcessor(object):
         """
         start thread to get tokens
         """
+        llm_logger.info("Start to run token_processor")
         assert self.resource_manager is not None, "The resource manager is None, cannot run."
         if self.worker is not None:
             raise Exception("Worker is already running!")
@@ -153,11 +154,12 @@ class TokenProcessor(object):
                         get_output_ep(self.output_tokens, rank_id, is_blocking)
 
                     else:
+                        llm_logger.info("try to get result")
                         get_output(self.output_tokens, rank_id, is_blocking)
 
                     if self.output_tokens[0, 0] == -2:
                         continue
-                    llm_logger.debug(
+                    llm_logger.info(
                         f"rank_id {rank_id} self.output_tokens[0, 0] {self.output_tokens[0, 0]}"
                     )
                 self._process_prefill_metrics()
@@ -271,11 +273,11 @@ class TokenProcessor(object):
 
         batch_result = list()
         for i in range(batch):
-            if self.resource_manager.stop_flags[i]:
+            if self.scheduler.stop_flags[i]:
                 continue
 
             recovery_stop = False
-            task = self.resource_manager.tasks_list[i]
+            task = self.scheduler.tasks_list[i]
 
             task_id = task.request_id
             if self.cfg.speculative_config.method:
@@ -346,6 +348,8 @@ class TokenProcessor(object):
                 self.tokens_counter[task_id] += 1
                 if token_id != RECOVERY_STOP_SIGNAL:
                     result.outputs.token_ids.append(token_id)
+                    task.output_token_ids.append(token_id)
+                    llm_logger.info(f"task_id {task_id} recieved token_id {token_id}")
                 if token_id in task.eos_token_ids or is_prefill or recovery_stop:
                     result.finished = True
                     result.prompt = task.prompt
@@ -442,9 +446,10 @@ class WarmUpTokenProcessor(TokenProcessor):
                         continue
                 else:
                     get_output(self.output_tokens, rank_id, self._is_blocking)
-
+                    llm_logger.info(f"try get output")
                     if self.output_tokens[0, 0] == -2:
                         continue
+                llm_logger.info(f"recieved tokens to handle {self.output_tokens}")
                 self._process_batch_output()
             except Exception as e:
                 llm_logger.info("while get input_data error: {0} {1}".format(

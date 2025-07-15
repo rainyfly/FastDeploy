@@ -18,6 +18,7 @@ __global__ void recover_decode_task(bool *stop_flags,
                                    int *seq_lens_this_time,
                                    int *seq_lens_encoder,
                                    int *seq_lens_decoder,
+                                   int *step_seq_lens_decoder,
                                    int *block_tables,
                                    bool *is_block_step,
                                    const int bsz,
@@ -27,12 +28,13 @@ __global__ void recover_decode_task(bool *stop_flags,
     if (thread_idx < bsz) {
         if(is_block_step[thread_idx] == true) {
             int *block_table_now = block_tables + thread_idx * block_num_per_seq;
-            if (block_table_now[seq_lens_decoder[thread_idx] / block_size] != -1) {
+            if (block_table_now[step_seq_lens_decoder[thread_idx] / block_size] != -1) {
                     // 可以重新被调度解码
                     is_block_step[thread_idx] = false;
                     seq_lens_this_time[thread_idx]= 1;
                     stop_flags[thread_idx] = false;
                     seq_lens_encoder[thread_idx] = 0;
+                    seq_lens_decoder[thread_idx] = step_seq_lens_decoder[thread_idx];
                 }
         }
     }
@@ -42,6 +44,7 @@ void RecoverDecodeTask(const paddle::Tensor &stop_flags,
                    const paddle::Tensor &seq_lens_this_time,
                    const paddle::Tensor &seq_lens_encoder,
                    const paddle::Tensor &seq_lens_decoder,
+                   const paddle::Tensor &step_seq_lens_decoder,
                    const paddle::Tensor &block_tables,
                    const paddle::Tensor &is_block_step,
                    const int block_size) {
@@ -58,8 +61,9 @@ void RecoverDecodeTask(const paddle::Tensor &stop_flags,
         const_cast<int *>(seq_lens_this_time.data<int>()),
         const_cast<int *>(seq_lens_encoder.data<int>()),
         const_cast<int *>(seq_lens_decoder.data<int>()),
+        const_cast<int *>(step_seq_lens_decoder.data<int>()),
         const_cast<int *>(block_tables.data<int>()),
-        const_cast<bool *>is_block_step.data<bool>(),
+        const_cast<bool *>(is_block_step.data<bool>()),
         bsz,
         block_num_per_seq,
         block_size);
@@ -70,15 +74,18 @@ PD_BUILD_STATIC_OP(recover_decode_task)
              "seq_lens_this_time",
              "seq_lens_encoder",
              "seq_lens_decoder",
+             "step_seq_lens_decoder",
              "block_tables",
              "is_block_step"})
     .Attrs({"block_size: int"})
     .Outputs({"seq_lens_this_time_out",
               "seq_lens_encoder_out",
+              "seq_lens_decoder_out",
               "stop_flags_out",
               "is_block_step_out"})
     .SetInplaceMap({{"seq_lens_this_time", "seq_lens_this_time_out"},
                     {"seq_lens_encoder", "seq_lens_encoder_out"},
+                    {"seq_lens_decoder", "seq_lens_decoder_out"},
                     {"stop_flags", "stop_flags_out"},
                     {"is_block_step", "is_block_step_out"}})
     .SetKernelFn(PD_KERNEL(RecoverDecodeTask));

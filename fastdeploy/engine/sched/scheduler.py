@@ -5,8 +5,11 @@ from typing import Any, Optional, Union
 from concurrent.futures import ThreadPoolExecutor
 import threading
 
+import numpy as np
+
 from fastdeploy.engine.request import Request, RequestStatus
 from fastdeploy.cache_manager.prefix_cache_manager import PrefixCacheManager
+from fastdeploy.utils import EngineError, console_logger, llm_logger
 
 class Scheduler:
     def __init__(self,
@@ -19,6 +22,7 @@ class Scheduler:
         self.config = config
         self.max_num_seqs = max_num_seqs
         self.stop_flags = [True] * max_num_seqs
+        self.tasks_list = [None] * max_num_seqs
         self.real_bsz = 0
         # req_id -> Request
         self.requests: dict[str, Request] = {}
@@ -51,10 +55,10 @@ class Scheduler:
         return len(self.cache_manager.gpu_free_block_list)
     
     def allocated_slots(self, request: Request):
-        return len(request.block_tables) * self.config.block_size
+        return len(request.block_tables) * self.config.cache_config.block_size
     
     def get_new_block_nums(self, request: Request, num_new_tokens: int):
-        return (request.num_computed_tokens + num_new_tokens + self.config.block_size - 1) // self.config.block_size - len(request.block_tables)
+        return (request.num_computed_tokens + num_new_tokens + self.config.cache_config.block_size - 1) // self.config.cache_config.block_size - len(request.block_tables)
     
     def _prepare_prefill_task(self, request, new_token_num):
         request.prefill_start_index = request.num_computed_tokens
@@ -78,18 +82,21 @@ class Scheduler:
             scheduled_resumed_reqs: list[Request] = []
             scheduled_running_reqs: list[Request] = []
             preempted_reqs: list[Request] = []
-            token_budget = self.config.max_num_scheduled_tokens
+            token_budget = self.config.max_num_batched_tokens
 
             # First, schedule the RUNNING requests.
             req_index = 0
             num_decoding_req_nums = 0
             while req_index < len(self.running) and token_budget > 0:
+                llm_logger.info(f"in scheduler running")
                 request = self.running[req_index]
                 if request.num_computed_tokens >= request.prompt_token_ids_len: # 在Decoding
-                    request.num_computed_tokens = request.num_total_tokens - 1
+                    if request.num_total_tokens > request.prompt_token_ids_len: # 已经有token输出了
+                        request.num_computed_tokens = request.num_total_tokens - 1
                     if self.allocated_slots(request) - request.num_total_tokens <= self.config.cache_config.prealloc_dec_block_slot_num_threshold:
                         # 需要分配下一次的解码block
                         if self.cache_manager.can_allocate_gpu_blocks(self.config.cache_config.enc_dec_block_num):
+                            llm_logger.info(f"in scheduler running decoding {request} request.num_total_tokens {request.num_total_tokens} request.num_computed_tokens {request.num_computed_tokens}")
                             # 分配解码下一轮的解码 block
                             request.block_tables.extend(self.cache_manager.allocate_gpu_blocks(self.config.cache_config.enc_dec_block_num))
                             # 进入running list
@@ -125,7 +132,8 @@ class Scheduler:
                         num_decoding_req_nums += 1
                         token_budget -= 1
                 else:  # 在Prefill
-                    num_new_tokens = request.num_total_tokens - request.num_computed_tokens
+                    llm_logger.info(f"in scheduler running prefill {request} request.prompt_token_ids_len {request.prompt_token_ids_len} request.num_computed_tokens {request.num_computed_tokens}")
+                    num_new_tokens = request.prompt_token_ids_len - request.num_computed_tokens
                     num_new_tokens = min(num_new_tokens, token_budget)
                     new_new_block = self.get_new_block_nums(request, num_new_tokens)
                     # 需要分配下一次的prefill block
@@ -168,6 +176,7 @@ class Scheduler:
             # Next, schedule the WAITING requests.
             if not preempted_reqs:
                 while self.waiting and token_budget > 0:
+                    llm_logger.info(f"in scheduler waiting")
                     if len(self.running) == self.max_num_seqs:
                         break
                     request = self.waiting[0]
@@ -183,7 +192,10 @@ class Scheduler:
                             self.running.append(request)
                             # scheduled_new_reqs list
                             scheduled_new_reqs.append(request)
+                            llm_logger.info(f"add in scheduled_reqs")
                             scheduled_reqs.append(self._prepare_prefill_task(request, num_new_tokens)) 
+                            request.inference_start_time = time.time()
+                            request.schedule_start_time = time.time()
                             token_budget -= num_new_tokens
                             request.num_computed_tokens += num_new_tokens
                             request.status = RequestStatus.RUNNING
@@ -191,7 +203,9 @@ class Scheduler:
                             request.idx = allocated_position
                             self.tasks_list[allocated_position] = request
                             self.stop_flags[allocated_position] = False
+                            llm_logger.info(f"finished add in scheduled_reqs")
                         else:
+                            llm_logger.info(f"break")
                             break
                     elif request.status == RequestStatus.PREEMPTED:
                         num_new_tokens = request.num_total_tokens - request.num_computed_tokens
@@ -206,21 +220,26 @@ class Scheduler:
                             # scheduled_resumed_reqs list
                             scheduled_resumed_reqs.append(request)
                             scheduled_reqs.append(self._prepare_prefill_task(request, num_new_tokens)) 
+                            llm_logger.info(f"add in scheduled_reqs")
                             token_budget -= num_new_tokens
                             request.num_computed_tokens += num_new_tokens
                             request.status = RequestStatus.RUNNING
                         else:
+                            llm_logger.info(f"break")
                             break
+                    else:
+                        llm_logger.info(f"unknown type")
+            if scheduled_reqs:
+                llm_logger.info(f"schedued_reqs: {scheduled_reqs}")
             return scheduled_reqs
-
-
-
         
     def get_available_position(self) -> int:
         position = 0
+        # 循环遍历所有可能的位置
         while position < self.max_num_seqs:
             if self.stop_flags[position] is True:
                 return position
+            position += 1
         assert True is False, "No available position is available for new request"
 
     def get_real_bsz(self) -> int:
