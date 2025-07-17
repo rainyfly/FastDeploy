@@ -165,13 +165,14 @@ class GPUModelRunner(ModelRunnerBase):
             request = req_dicts[i]
             idx = request.idx
             if (request.task_type == 0): # prefill任务
-                # print(f"handle prefill task {request} idx: {idx}")
+                print(f"handle prefill task {request} idx: {idx}")
                 prefill_start_index = request.prefill_start_index
                 prefill_end_index = request.prefill_end_index
                 length = prefill_end_index - prefill_start_index
+                input_ids = request.prompt_token_ids + request.output_token_ids
                 self.share_inputs["input_ids"][idx:idx +
                                                1, :length] = np.array(
-                                                   request.prompt_token_ids[prefill_start_index:prefill_end_index])
+                                                   input_ids[prefill_start_index:prefill_end_index])
                 encoder_block_num = len(request.get("block_tables"))
                 self.share_inputs["encoder_block_lens"][idx:idx +
                                                         1] = encoder_block_num

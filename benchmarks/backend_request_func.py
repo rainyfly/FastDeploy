@@ -522,7 +522,6 @@ async def async_request_openai_completions(
             "prompt": request_func_input.prompt,
             # "temperature": 0.0,
             "max_tokens": request_func_input.output_len,
-            "min_tokens": request_func_input.output_len,  # to delete, just for test
             "logprobs": request_func_input.logprobs,
             "stream": True,
             #"stream_options": {

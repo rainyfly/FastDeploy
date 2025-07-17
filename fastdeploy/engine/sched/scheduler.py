@@ -126,10 +126,10 @@ class Scheduler:
                             scheduled_reqs.append(self._prepare_decode_task(request))
                         else:
                             # 触发抢占
+                            can_schedule = True
                             while True:
-                                if self.cache_manager.can_allocate_gpu_blocks(self.config.cache_config.enc_dec_block_num):
+                                if not self.cache_manager.can_allocate_gpu_blocks(self.config.cache_config.enc_dec_block_num):
                                     preempted_req = self.running.pop()
-                                    self.kv_cache_manager.free(preempted_req)
                                     preempted_req.status = RequestStatus.PREEMPTED
                                     preempted_req.num_computed_tokens = 0
                                     self._free_blocks(preempted_req)  # 由于异步存在，抢占请求需要让推理不再推
@@ -166,11 +166,12 @@ class Scheduler:
                         scheduled_running_reqs.append(request)
                         scheduled_reqs.append(self._prepare_prefill_task(request, num_new_tokens)) 
                     else:
+                        # llm_logger.info(f"trigger preempted")
+                        can_schedule = True
                         # 触发抢占
                         while True:
-                            if self.cache_manager.can_allocate_gpu_blocks(new_new_block):
+                            if not self.cache_manager.can_allocate_gpu_blocks(new_new_block):
                                 preempted_req = self.running.pop()
-                                self.kv_cache_manager.free(preempted_req)
                                 preempted_req.status = RequestStatus.PREEMPTED
                                 preempted_req.num_computed_tokens = 0
                                 self._free_blocks(preempted_req)  # 由于异步存在，抢占请求需要让推理不再推
@@ -251,7 +252,7 @@ class Scheduler:
                             break
                     else:
                         llm_logger.info(f"unknown type")
-            # if scheduled_reqs:
+            if scheduled_reqs:
                 # llm_logger.info(f"schedued_reqs: {scheduled_reqs}")
                 # llm_logger.info(f"self.stop_flags {self.stop_flags}")
             return scheduled_reqs
