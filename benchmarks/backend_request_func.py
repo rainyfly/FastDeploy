@@ -25,6 +25,7 @@ import time
 import traceback
 from dataclasses import dataclass, field
 from typing import Optional
+import uuid
 
 import aiohttp
 from tqdm.asyncio import tqdm
@@ -36,6 +37,7 @@ AIOHTTP_TIMEOUT = aiohttp.ClientTimeout(total=6 * 60 * 60)
 @dataclass
 class RequestFuncInput:
     """Input for requesting LLMs via API"""
+    no: int
     prompt: str
     history_QA: Optional[dict]
     hyper_parameters: dict
@@ -49,11 +51,13 @@ class RequestFuncInput:
     multi_modal_content: Optional[dict] = None
     ignore_eos: bool = False
     language: Optional[str] = None
+    user: str =str(uuid.uuid4())
 
 
 @dataclass
 class RequestFuncOutput:
     """Output for requesting LLMs via API"""
+    no: int = 0
     generated_text: str = ""
     reasoning_content: str = ""
     success: bool = False
@@ -66,7 +70,7 @@ class RequestFuncOutput:
     prompt_len: int = 0
     prompt_tokens: int = 0 # 推理侧返回输入token数
     error: str = ""
-
+    user: str =str(uuid.uuid4())
 
 async def async_request_eb_openai_chat_completions(
     request_func_input: RequestFuncInput,
@@ -77,26 +81,30 @@ async def async_request_eb_openai_chat_completions(
     assert api_url.endswith(
         ("completions", "profile")
     ), "OpenAI Chat Completions API URL must end with 'completions'."
-
+    request_func_input.user = str(uuid.uuid4())
     async with aiohttp.ClientSession(trust_env=True,
                                      timeout=AIOHTTP_TIMEOUT) as session:
         content = [{"type": "text", "text": request_func_input.prompt}]
         if request_func_input.multi_modal_content:
             content.append(request_func_input.multi_modal_content)
         payload = {
-            "model": "default",
+            "model": request_func_input.model,
             "messages": request_func_input.history_QA,
             "stream": True,
             "stream_options": {
                 "include_usage": True,
                 "continuous_usage_stats": True
             },
+            "user": request_func_input.user,
         }
         # 超参由yaml传入
         payload.update(request_func_input.hyper_parameters)
 
         if request_func_input.ignore_eos:
             payload["ignore_eos"] = request_func_input.ignore_eos
+            
+        print("payload:{}".format(json.dumps(payload, ensure_ascii=False)))
+
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {os.environ.get('OPENAI_API_KEY')}",
@@ -104,6 +112,8 @@ async def async_request_eb_openai_chat_completions(
 
         output = RequestFuncOutput()
         output.prompt_len = 0
+        output.no = request_func_input.no
+        output.user = request_func_input.user
 
         ttft = 0.0
         st = time.perf_counter()
@@ -132,7 +142,8 @@ async def async_request_eb_openai_chat_completions(
                                     ttft = timestamp - st
                                     output.ttft = ttft
                                     # cached_tokens
-                                    output.prompt_len = data["usage"]["prompt_tokens_details"]["cached_tokens"]
+                                    output.prompt_len = data["usage"].get("prompt_tokens_details", {}).get("cached_tokens", 0)
+
 
                                 # Decoding phase
                                 else:
@@ -141,12 +152,12 @@ async def async_request_eb_openai_chat_completions(
 
                                 output.generated_text += content or ""
                                 output.reasoning_content += reason_content or ""
-                                output.arrival_time.append(choices[0].get("arrival_time"))
-                            elif usage := data.get("usage"):
+                                output.arrival_time.append(choices[0].get("arrival_time", timestamp))
+                            elif usage := data.get("usage", {}):
                                 output.output_tokens = usage.get(
-                                    "completion_tokens")
+                                    "completion_tokens", 0)
                                 output.prompt_tokens = usage.get(
-                                    "prompt_tokens")
+                                    "prompt_tokens", 0)
 
                             most_recent_timestamp = timestamp
 
@@ -173,6 +184,7 @@ async def async_request_eb_openai_chat_completions(
                 f.write(str(output) + "\n")
     if pbar:
         pbar.update(1)
+    print("#####final_output:", output)
     return output
 
 
@@ -189,7 +201,7 @@ async def async_request_eb_openai_completions(
     async with aiohttp.ClientSession(trust_env=True,
                                      timeout=AIOHTTP_TIMEOUT) as session:
         payload = {
-            "model": "default",
+            "model": request_func_input.model,
             "prompt": request_func_input.prompt,
             "stream": True,
             "stream_options": {
@@ -202,14 +214,20 @@ async def async_request_eb_openai_completions(
 
         if request_func_input.ignore_eos:
             payload["ignore_eos"] = request_func_input.ignore_eos
+        
+        print("payload:", json.dumps(payload, ensure_ascii=False))
+
         headers = {
-            "Authorization": f"Bearer {os.environ.get('OPENAI_API_KEY')}"
+            "Authorization": f"Bearer {os.environ.get('OPENAI_API_KEY')}",
+            "Content-Type": "application/json"
         }
 
         output = RequestFuncOutput()
         output.prompt_len = request_func_input.prompt_len
+        output.no = request_func_input.no
 
         generated_text = ""
+        ttft = 0.0
         st = time.perf_counter()
         most_recent_timestamp = st
         try:
@@ -226,6 +244,7 @@ async def async_request_eb_openai_completions(
                             "data: ")
                         if chunk != "[DONE]":
                             # print("####chunk:", chunk, chunk.usage)
+                            timestamp = time.perf_counter()
                             data = json.loads(chunk)
 
                             # NOTE: Some completion API might have a last
@@ -235,21 +254,22 @@ async def async_request_eb_openai_completions(
                                 # Note that text could be empty here
                                 # e.g. for special tokens
                                 text = choices[0].get("text")
-                                timestamp = time.perf_counter()
+                                
                                 # First token
                                 if not first_chunk_received:
                                     first_chunk_received = True
-                                    ttft = time.perf_counter() - st
+                                    ttft = timestamp - st
                                     output.ttft = ttft
 
                                 # Decoding phase
                                 else:
                                     output.itl.append(timestamp -
                                                       most_recent_timestamp)
+                                
+                                generated_text += text or ""
 
                                 most_recent_timestamp = timestamp
-                                output.arrival_time.append(choices[0].get("arrival_time"))
-                                generated_text += text or ""
+                                output.arrival_time.append(choices[0].get("arrival_time", timestamp))
                             elif usage := data.get("usage"):
                                 output.prompt_tokens = usage.get(
                                     "prompt_tokens")
@@ -262,8 +282,15 @@ async def async_request_eb_openai_completions(
                         output.error = (
                             "Never received a valid chunk to calculate TTFT."
                             "This response will be marked as failed!")
+                    
                     output.generated_text = generated_text
                     output.latency = most_recent_timestamp - st
+
+                    if output.generated_text == "":
+                        output.success = False
+                        output.error = "No generated text found!"
+                    else:
+                        output.success = True
                 else:
                     output.error = response.reason or ""
                     output.success = False
@@ -271,6 +298,8 @@ async def async_request_eb_openai_completions(
             output.success = False
             exc_info = sys.exc_info()
             output.error = "".join(traceback.format_exception(*exc_info))
+        
+        print("final_output:{}".format(output))
 
     if pbar:
         pbar.update(1)
@@ -493,6 +522,7 @@ async def async_request_openai_completions(
             "prompt": request_func_input.prompt,
             # "temperature": 0.0,
             "max_tokens": request_func_input.output_len,
+            "min_tokens": request_func_input.output_len,  # to delete, just for test
             "logprobs": request_func_input.logprobs,
             "stream": True,
             #"stream_options": {
@@ -697,4 +727,3 @@ OPENAI_COMPATIBLE_BACKENDS = [
     if v in (async_request_openai_completions,
              async_request_eb_openai_chat_completions)
 ]
-

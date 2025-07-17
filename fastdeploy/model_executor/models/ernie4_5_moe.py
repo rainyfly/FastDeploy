@@ -244,14 +244,14 @@ class Ernie4_5_Attention(nn.Layer):
         hidden_states: paddle.Tensor,
     ):
         qkv_out = self.qkv_proj(hidden_states)
-
+        # paddle.device.cuda.synchronize()
         attn_out = self.attn(
             qkv=qkv_out,
             forward_meta=forward_meta,
         )
-
+        # paddle.device.cuda.synchronize()
         output = self.o_proj(attn_out)
-
+        # paddle.device.cuda.synchronize()
         return output
 
 
@@ -317,17 +317,17 @@ class Ernie4_5_DecoderLayer(nn.Layer):
         else:
             hidden_states, residual = self.input_layernorm(
                 hidden_states, residual)
-
+        # paddle.device.cuda.synchronize()
         hidden_states = self.self_attn(
             hidden_states=hidden_states,
             forward_meta=forward_meta,
         )
-
+        # paddle.device.cuda.synchronize()
         hidden_states, residual = self.post_attention_layernorm(
             hidden_states, residual)
 
         hidden_states = self.mlp(hidden_states)
-
+        # paddle.device.cuda.synchronize()
         return hidden_states, residual
 
 

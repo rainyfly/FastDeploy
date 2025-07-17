@@ -50,6 +50,8 @@ __global__ void update_inputs_kernel_v1(bool *not_need_stop,
     if (thread_idx < bsz) {
         if(stop_flag_now) { 
             seq_lens_this_time[thread_idx] = 0; // 下一轮不推
+            seq_lens_decoder[thread_idx] = 0;
+            seq_lens_encoder[thread_idx] = 0;
         } else {
             if (seq_lens_this_time[thread_idx] + seq_lens_decoder[thread_idx] >= prompt_lens[thread_idx]) {
                 // 进入解码阶段
@@ -78,6 +80,8 @@ __global__ void update_inputs_kernel_v1(bool *not_need_stop,
                 // printf("enter prefill phase", thread_idx);
                 stop_flags[thread_idx] = true;
                 seq_lens_this_time[thread_idx] = 0;
+                seq_lens_decoder[thread_idx] = 0;
+                seq_lens_encoder[thread_idx] = 0;
                 topk_ids[thread_idx] = -1;
                 stop_flag_now_int = 1;
             }

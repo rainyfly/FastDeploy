@@ -121,6 +121,10 @@ class PaddleDisWorkerProc():
             client_id=self.parallel_config.tensor_parallel_rank,
             local_data_parallel_id=self.fd_config.parallel_config.
             expert_parallel_rank)
+        self.get_task_count = 0
+        self.get_task_total_time = 0
+        self.get_task_min_time = 1000000
+        self.get_task_max_time = 0
 
     def init_health_status(self) -> None:
         """
@@ -273,8 +277,17 @@ class PaddleDisWorkerProc():
                     self.task_queue.read_finish_flag.get() == 1:
                 logger.info(f"Rank: {self.local_rank} Detected new requests.")
                 self.insert_step = True
-
+                # start_time = time.time()
                 tasks, read_finish = self.task_queue.get_tasks()
+                # end_time = time.time()
+                # elapsed_time = end_time - start_time
+                # self.get_task_count += 1
+                # self.get_task_total_time += elapsed_time
+                # if self.get_task_max_time < elapsed_time:
+                #     self.get_task_max_time = elapsed_time
+                # if self.get_task_min_time > elapsed_time:
+                #     self.get_task_min_time = elapsed_time
+                # logger.info(f"get tasks cost: {elapsed_time:.4f}  total_count {self.get_task_count}  min/avg/max {self.get_task_min_time:.4f}/{self.get_task_total_time/self.get_task_count:.4f}/{self.get_task_max_time:.4f}")
                 if read_finish:
                     # Ensure that every worker get the task
                     self.exist_task_signal.value[self.fd_config.parallel_config

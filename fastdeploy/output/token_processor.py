@@ -154,14 +154,14 @@ class TokenProcessor(object):
                         get_output_ep(self.output_tokens, rank_id, is_blocking)
 
                     else:
-                        llm_logger.info("try to get result")
+                        # llm_logger.info("try to get result")
                         get_output(self.output_tokens, rank_id, is_blocking)
 
                     if self.output_tokens[0, 0] == -2:
                         continue
-                    llm_logger.info(
-                        f"rank_id {rank_id} self.output_tokens[0, 0] {self.output_tokens[0, 0]}"
-                    )
+                    # llm_logger.info(
+                    #     f"rank_id {rank_id} self.output_tokens[0, 0] {self.output_tokens[0, 0]}"
+                    # )
                 self._process_prefill_metrics()
                 self._process_batch_output()
             except Exception as e:
@@ -349,7 +349,7 @@ class TokenProcessor(object):
                 if token_id != RECOVERY_STOP_SIGNAL:
                     result.outputs.token_ids.append(token_id)
                     task.output_token_ids.append(token_id)
-                    llm_logger.info(f"task_id {task_id} recieved token_id {token_id}")
+                    # llm_logger.info(f"task_id {task_id} recieved token_id {token_id}")
                 if token_id in task.eos_token_ids or is_prefill or recovery_stop:
                     result.finished = True
                     result.prompt = task.prompt
@@ -358,7 +358,7 @@ class TokenProcessor(object):
                         result.error_msg = "Recover is not supported, the result is incomplete!"
                     llm_logger.info(
                         f"Request: {task_id} finished, number of "
-                        f"generated tokens: {self.tokens_counter[task_id]}.")
+                        f"generated tokens: {self.tokens_counter[task_id]}. cur token_id {token_id} task.output_token_ids {task.output_token_ids}")
                     llm_logger.info(
                         f"Request: {task_id} token ratio: {self.tokens_counter[task_id] / (time.time() - task.inference_start_time)}"
                     )

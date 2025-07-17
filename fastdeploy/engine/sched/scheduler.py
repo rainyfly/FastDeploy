@@ -4,12 +4,28 @@ from collections.abc import Iterable
 from typing import Any, Optional, Union
 from concurrent.futures import ThreadPoolExecutor
 import threading
+from dataclasses import asdict, dataclass, fields
 
 import numpy as np
 
 from fastdeploy.engine.request import Request, RequestStatus
 from fastdeploy.cache_manager.prefix_cache_manager import PrefixCacheManager
 from fastdeploy.utils import EngineError, console_logger, llm_logger
+
+@dataclass
+class ScheduleDecodeTask:
+    idx: int
+    request_id: str
+    block_tables: list[int]
+    task_type: int = 1
+
+@dataclass
+class SchedulePreemptTask:
+    idx: int
+    request_id: str
+    task_type: int = 2
+
+
 
 class Scheduler:
     def __init__(self,
@@ -35,6 +51,13 @@ class Scheduler:
         self.finish_execution_pool = ThreadPoolExecutor(max_workers=1)
         self.lock = threading.Lock()
     
+
+    def reset_cache_config(self, cfg):
+        """
+        reset cache config
+        """
+        self.cfg = cfg
+        self.cache_manager.update_cache_config_v1(cfg)
 
     def available_batch(self):
         """
@@ -67,12 +90,10 @@ class Scheduler:
         return request
     
     def _prepare_decode_task(self, request):
-        request.task_type = 1
-        return request
+        return ScheduleDecodeTask(idx=request.idx, request_id=request.request_id, block_tables=request.block_tables)
     
     def _prepare_preempt_task(self, request):
-        request.task_type = 2
-        return request
+        return SchedulePreemptTask(idx=request.idx, request_id=request.request_id)
 
 
     def schedule(self):
@@ -87,6 +108,7 @@ class Scheduler:
             # First, schedule the RUNNING requests.
             req_index = 0
             num_decoding_req_nums = 0
+            # llm_logger.info(f"in scheduler, self.running length {len(self.running)} {self.running}")
             while req_index < len(self.running) and token_budget > 0:
                 # llm_logger.info(f"in scheduler running")
                 request = self.running[req_index]
@@ -132,7 +154,7 @@ class Scheduler:
                         num_decoding_req_nums += 1
                         token_budget -= 1
                 else:  # 在Prefill
-                    # llm_logger.info(f"in scheduler running prefill {request} request.prompt_token_ids_len {request.prompt_token_ids_len} request.num_computed_tokens {request.num_computed_tokens}")
+                    llm_logger.info(f"in scheduler running prefill {request} request.prompt_token_ids_len {request.prompt_token_ids_len} request.num_computed_tokens {request.num_computed_tokens}")
                     num_new_tokens = request.prompt_token_ids_len - request.num_computed_tokens
                     num_new_tokens = min(num_new_tokens, token_budget)
                     new_new_block = self.get_new_block_nums(request, num_new_tokens)
@@ -229,8 +251,9 @@ class Scheduler:
                             break
                     else:
                         llm_logger.info(f"unknown type")
-            if scheduled_reqs:
-                llm_logger.info(f"schedued_reqs: {scheduled_reqs}")
+            # if scheduled_reqs:
+                # llm_logger.info(f"schedued_reqs: {scheduled_reqs}")
+                # llm_logger.info(f"self.stop_flags {self.stop_flags}")
             return scheduled_reqs
         
     def get_available_position(self) -> int:
@@ -253,7 +276,7 @@ class Scheduler:
         self.waiting.append(request)
         self.requests[request.request_id] = request
     
-    def _free_blocks(request: Request):
+    def _free_blocks(self, request: Request):
         self.cache_manager.recycle_gpu_blocks(request.block_tables)
         request.block_tables = []
     
@@ -264,26 +287,43 @@ class Scheduler:
     def finish_requests(
         self,
         request_ids: Union[str, Iterable[str]]):
-        with self.lock:
-            if isinstance(request_ids, str):
-                request_ids = (request_ids, )
-            else:
-                request_ids = set(request_ids)
+        llm_logger.info(f"finished requests: {request_ids}")
+        try:
+            with self.lock:
+                # llm_logger.info(f"here1")
+                if isinstance(request_ids, str):
+                    request_ids = (request_ids, )
+                else:
+                    request_ids = set(request_ids)
+                # llm_logger.info(f"here2")
+                for req_id in request_ids:
+                    request = self.requests.get(req_id)
+                    if request is None:
+                        # Invalid request ID.
+                        continue
+                    # llm_logger.info(f"here3")    
+                    request.status = RequestStatus.FINISHED
+                    # llm_logger.info(f"here4")
+                    # llm_logger.info(f"before remove, self.running length {len(self.running)}, {[t.request_id for t in self.running]}")
+                    # llm_logger.info(f"remove request: {request} {self.running.index(request)}")
+                    for i, idx in enumerate(self.running):
+                        if self.running[i].request_id == req_id:
+                            break
+                    del self.running[i]
+                    # self.running.remove(request)
+                    # llm_logger.info(f"after remove, self.running length {len(self.running)}, {[t.request_id for t in self.running]}")
+                    # llm_logger.info(f"here5")
+                    self._free_blocks(request)
+                    # llm_logger.info(f"here6")
+                    self.tasks_list[request.idx] = None
+                    self.stop_flags[request.idx] = True
+                    del self.requests[req_id]
+                    # llm_logger.info(f"here7")
+        except Exception as e:
+            llm_logger.error(e)
+                
 
-            for req_id in request_ids:
-                request = self.requests.get(req_id)
-                if request is None:
-                    # Invalid request ID.
-                    continue
-                request.status = RequestStatus.FINISHED
-                self.running.remove(request)
-                self._free_blocks(request)
-                self.tasks_list[request.idx] = None
-                self.stop_flags[request.idx] = False
-                del self.requests[req_id]
+                
             
-
-             
         
-    
 

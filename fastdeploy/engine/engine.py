@@ -320,9 +320,13 @@ class LLMEngine(object):
                 if len(self.scheduler_v1.waiting) == 0 and (not is_fetching):
                     get_request_pool.submit(_fetch_request)
                 # 2. 调度请求
+                # llm_logger.info(f"call schedule")
+                # start_time = time.time()
                 tasks = self.scheduler_v1.schedule()
+                # end_time = time.time()
                 # 3. 发送给引擎
                 if tasks:
+                    # llm_logger.info(f"schedule_time: {end_time - start_time}")
                     self.scheduler_v1.get_real_bsz()
                     self.engine_worker_queue.put_tasks((tasks, self.scheduler_v1.real_bsz))
                 else:
@@ -1203,7 +1207,9 @@ class LLMEngine(object):
                     num_gpu_blocks, self.get_profile_block_num_signal.value[i])
 
         self.cfg.cache_config.reset(num_gpu_blocks)
-        self.resource_manager.reset_cache_config(self.cfg.cache_config)
+        # self.resource_manager.reset_cache_config(self.cfg.cache_config)
+        self.scheduler_v1.reset_cache_config(self.cfg.cache_config)
+        llm_logger.info(f"Reset cache config, total num_gpu_blocks {num_gpu_blocks}")
         if self.cfg.cache_config.enable_prefix_caching or self.cfg.splitwise_role != "mixed":
             device_ids = self.cfg.device_ids.split(",")
             self.cache_manager_processes = self.resource_manager.cache_manager.launch_cache_manager(

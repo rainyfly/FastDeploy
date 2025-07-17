@@ -213,6 +213,19 @@ class PrefixCacheManager:
         heapq.heapify(self.gpu_free_block_list)
         self.node_id_pool = list(
             range(self.num_gpu_blocks + self.num_cpu_blocks))
+    
+    def update_cache_config_v1(self, cache_config):
+        """
+        update cache config
+        """
+        self.cache_config = cache_config
+        self.num_gpu_blocks = cache_config.total_block_num
+        self.gpu_free_block_list = list(range(self.num_gpu_blocks - 1, -1,
+                                              -1))  # 服务端管理的GPU上剩余的block id
+
+        heapq.heapify(self.gpu_free_block_list)
+        self.node_id_pool = list(
+            range(self.num_gpu_blocks + self.num_cpu_blocks))
 
     def _enable_cpu_cache(self):
         """
