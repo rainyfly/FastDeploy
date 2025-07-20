@@ -1,0 +1,1579 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>FastDeploy Parameter Documentation - FastDeploy 2.0: Large Language Model Deployement</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.342714a4.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#fastdeploy-parameter-documentation" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="FastDeploy 2.0: Large Language Model Deployement" class="md-header__button md-logo" aria-label="FastDeploy 2.0: Large Language Model Deployement" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            FastDeploy 2.0: Large Language Model Deployement
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              FastDeploy Parameter Documentation
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/PaddlePaddle/FastDeploy" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    FastDeploy
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="FastDeploy 2.0: Large Language Model Deployement" class="md-nav__button md-logo" aria-label="FastDeploy 2.0: Large Language Model Deployement" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    FastDeploy 2.0: Large Language Model Deployement
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/PaddlePaddle/FastDeploy" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    FastDeploy
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FastDeploy 2.0
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Quick Start
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Quick Start
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            Installation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../get_started/installation/nvidia_gpu/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Nvidia GPU
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../get_started/installation/kunlunxin_xpu/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    KunlunXin XPU
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../get_started/installation/Enflame_gcu/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Enflame S60
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../get_started/installation/iluvatar_gpu/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Iluvatar CoreX
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../get_started/quick_start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Deployment For ERNIE-4.5-0.3B-Paddle
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../get_started/quick_start_vl/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Deployment for ERNIE-4.5-VL-28B-A3B
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../get_started/ernie-4.5/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ERNIE-4.5-300B-A47B
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../get_started/ernie-4.5-vl/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ERNIE-4.5-VL-424B-A47B
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Online Serving
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Online Serving
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../online_serving/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    OpenAI-Compitable API Server
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../online_serving/metrics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Monitor Metrics
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../online_serving/scheduler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scheduler
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../offline_inference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Offline Inference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Quantiation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Quantiation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quantization/online_quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Online Quantization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quantization/wint2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    WINT2 Quantization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Features
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Features
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/prefix_caching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Prefix Caching
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/disaggregated/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Disaggration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/chunked_prefill/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Chunked Prefill
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/load_balance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Load Balance
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/speculative_decoding/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Speculative Decoding
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/structured_outputs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Structured Outputs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/reasoning_output/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Reasoning Output
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../supported_models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Supported Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmark/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Benchmark
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Usage
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            Usage
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/log/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Log Description
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/code_overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Code Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/environment_variables/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Environment Variables
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#parameter-description" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameter Description
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-relationship-between-kvcache-allocation-num_gpu_blocks_override-and-block_size" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Relationship between KVCache allocation, num_gpu_blocks_override and block_size?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-relationship-between-kv_cache_ratio-block_size-and-max_num_seqs" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Relationship between kv_cache_ratio, block_size and max_num_seqs?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-enable_chunked_prefill-parameter-description" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. enable_chunked_prefill parameter description
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-graphoptimizationbackend-related-configuration-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. GraphOptimizationBackend related configuration parameters
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. GraphOptimizationBackend related configuration parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cudagraph-related-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      CudaGraph related parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="fastdeploy-parameter-documentation">FastDeploy Parameter Documentation</h1>
+<h2 id="parameter-description">Parameter Description</h2>
+<p>When using FastDeploy to deploy models (including offline inference and service deployment), the following parameter configurations are involved. Please note that for offline inference, the parameter configurations are the parameter names as shown below; while when starting the service via command line, the separators in the corresponding parameters need to be changed from <code>_</code> to <code>-</code>, for example <code>max_model_len</code> becomes <code>--max-model-len</code> in command line.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Parameter Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>port</code></td>
+<td style="text-align: left;"><code>int</code></td>
+<td style="text-align: left;">Only required for service deployment, HTTP service port number, default: 8000</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>metrics_port</code></td>
+<td style="text-align: left;"><code>int</code></td>
+<td style="text-align: left;">Only required for service deployment, metrics monitoring port number, default: 8001</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>engine_worker_queue_port</code></td>
+<td style="text-align: left;"><code>int</code></td>
+<td style="text-align: left;">FastDeploy internal engine communication port, default: 8002</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>cache_queue_port</code></td>
+<td style="text-align: left;"><code>int</code></td>
+<td style="text-align: left;">FastDeploy internal KVCache process communication port, default: 8003</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>max_model_len</code></td>
+<td style="text-align: left;"><code>int</code></td>
+<td style="text-align: left;">Default maximum supported context length for inference, default: 2048</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>tensor_parallel_size</code></td>
+<td style="text-align: left;"><code>int</code></td>
+<td style="text-align: left;">Default tensor parallelism degree for model, default: 1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>data_parallel_size</code></td>
+<td style="text-align: left;"><code>int</code></td>
+<td style="text-align: left;">Default data parallelism degree for model, default: 1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>block_size</code></td>
+<td style="text-align: left;"><code>int</code></td>
+<td style="text-align: left;">KVCache management granularity (Token count), recommended default: 64</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>max_num_seqs</code></td>
+<td style="text-align: left;"><code>int</code></td>
+<td style="text-align: left;">Maximum concurrent number in Decode phase, default: 8</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>mm_processor_kwargs</code></td>
+<td style="text-align: left;"><code>dict[str]</code></td>
+<td style="text-align: left;">Multimodal processor parameter configuration, e.g.: {"image_min_pixels": 3136, "video_fps": 2}</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>tokenizer</code></td>
+<td style="text-align: left;"><code>str</code></td>
+<td style="text-align: left;">Tokenizer name or path, defaults to model path</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>use_warmup</code></td>
+<td style="text-align: left;"><code>int</code></td>
+<td style="text-align: left;">Whether to perform warmup at startup, will automatically generate maximum length data for warmup, enabled by default when automatically calculating KV Cache</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>limit_mm_per_prompt</code></td>
+<td style="text-align: left;"><code>dict[str]</code></td>
+<td style="text-align: left;">Limit the amount of multimodal data per prompt, e.g.: {"image": 10, "video": 3}, default: 1 for all</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>enable_mm</code></td>
+<td style="text-align: left;"><code>bool</code></td>
+<td style="text-align: left;">Whether to support multimodal data (for multimodal models only), default: False</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>quantization</code></td>
+<td style="text-align: left;"><code>str</code></td>
+<td style="text-align: left;">Model quantization strategy, when loading BF16 CKPT, specifying wint4 or wint8 supports lossless online 4bit/8bit quantization</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gpu_memory_utilization</code></td>
+<td style="text-align: left;"><code>float</code></td>
+<td style="text-align: left;">GPU memory utilization, default: 0.9</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>num_gpu_blocks_override</code></td>
+<td style="text-align: left;"><code>int</code></td>
+<td style="text-align: left;">Preallocated KVCache blocks, this parameter can be automatically calculated by FastDeploy based on memory situation, no need for user configuration, default: None</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>max_num_batched_tokens</code></td>
+<td style="text-align: left;"><code>int</code></td>
+<td style="text-align: left;">Maximum batch token count in Prefill phase, default: None (same as max_model_len)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>kv_cache_ratio</code></td>
+<td style="text-align: left;"><code>float</code></td>
+<td style="text-align: left;">KVCache blocks are divided between Prefill phase and Decode phase according to kv_cache_ratio ratio, default: 0.75</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>enable_prefix_caching</code></td>
+<td style="text-align: left;"><code>bool</code></td>
+<td style="text-align: left;">Whether to enable Prefix Caching, default: False</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>swap_space</code></td>
+<td style="text-align: left;"><code>float</code></td>
+<td style="text-align: left;">When Prefix Caching is enabled, CPU memory size for KVCache swapping, unit: GB, default: None</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>enable_chunked_prefill</code></td>
+<td style="text-align: left;"><code>bool</code></td>
+<td style="text-align: left;">Enable Chunked Prefill, default: False</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>max_num_partial_prefills</code></td>
+<td style="text-align: left;"><code>int</code></td>
+<td style="text-align: left;">When Chunked Prefill is enabled, maximum concurrent number of partial prefill batches, default: 1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>max_long_partial_prefills</code></td>
+<td style="text-align: left;"><code>int</code></td>
+<td style="text-align: left;">When Chunked Prefill is enabled, maximum number of long requests in concurrent partial prefill batches, default: 1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>long_prefill_token_threshold</code></td>
+<td style="text-align: left;"><code>int</code></td>
+<td style="text-align: left;">When Chunked Prefill is enabled, requests with token count exceeding this value are considered long requests, default: max_model_len*0.04</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>static_decode_blocks</code></td>
+<td style="text-align: left;"><code>int</code></td>
+<td style="text-align: left;">During inference, each request is forced to allocate corresponding number of blocks from Prefill's KVCache for Decode use, default: 2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>reasoning_parser</code></td>
+<td style="text-align: left;"><code>str</code></td>
+<td style="text-align: left;">Specify the reasoning parser to extract reasoning content from model output</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>use_cudagraph</code></td>
+<td style="text-align: left;"><code>bool</code></td>
+<td style="text-align: left;">Whether to use cuda graph, default: False</td>
+</tr>
+<tr>
+<td style="text-align: left;">｜<code>graph_optimization_config</code></td>
+<td style="text-align: left;"><code>str</code></td>
+<td style="text-align: left;">Parameters related to graph optimization can be configured, with default values of'{"use_cudagraph":false, "graph_opt_level":0, "cudagraph_capture_sizes": null }'</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>enable_custom_all_reduce</code></td>
+<td style="text-align: left;"><code>bool</code></td>
+<td style="text-align: left;">Enable Custom all-reduce, default: False</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>splitwise_role</code></td>
+<td style="text-align: left;"><code>str</code></td>
+<td style="text-align: left;">Whether to enable splitwise inference, default value: mixed, supported parameters: ["mixed", "decode", "prefill"]</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>innode_prefill_ports</code></td>
+<td style="text-align: left;"><code>str</code></td>
+<td style="text-align: left;">Internal engine startup ports for prefill instances (only required for single-machine PD separation), default: None</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>guided_decoding_backend</code></td>
+<td style="text-align: left;"><code>str</code></td>
+<td style="text-align: left;">Specify the guided decoding backend to use, supports <code>auto</code>, <code>xgrammar</code>, <code>off</code>, default: <code>off</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>guided_decoding_disable_any_whitespace</code></td>
+<td style="text-align: left;"><code>bool</code></td>
+<td style="text-align: left;">Whether to disable whitespace generation during guided decoding, default: False</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>speculative_config</code></td>
+<td style="text-align: left;"><code>dict[str]</code></td>
+<td style="text-align: left;">Speculative decoding configuration, only supports standard format JSON string, default: None</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>dynamic_load_weight</code></td>
+<td style="text-align: left;"><code>int</code></td>
+<td style="text-align: left;">Whether to enable dynamic weight loading, default: 0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>enable_expert_parallel</code></td>
+<td style="text-align: left;"><code>bool</code></td>
+<td style="text-align: left;">Whether to enable expert parallel</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>enable_logprob</code></td>
+<td style="text-align: left;"><code>bool</code></td>
+<td style="text-align: left;">Whether to enable return log probabilities of the output tokens or not. If true, returns the log probabilities of each output token returned in the content of message.If logrpob is not used, this parameter can be omitted when starting</td>
+</tr>
+</tbody>
+</table>
+<h2 id="1-relationship-between-kvcache-allocation-num_gpu_blocks_override-and-block_size">1. Relationship between KVCache allocation, <code>num_gpu_blocks_override</code> and <code>block_size</code>?</h2>
+<p>During FastDeploy inference, GPU memory is occupied by <code>model weights</code>, <code>preallocated KVCache blocks</code> and <code>model computation intermediate activation values</code>. The preallocated KVCache blocks are determined by <code>num_gpu_blocks_override</code>, with <code>block_size</code> (default: 64) as its unit, meaning one block can store KVCache for 64 Tokens.</p>
+<p>In actual inference, it's difficult for users to know how to properly configure <code>num_gpu_blocks_override</code>, so FastDeploy uses the following method to automatically derive and configure this value:</p>
+<ul>
+<li>
+<p>Load the model, after completing model loading, record current memory usage <code>total_memory_after_load</code> and FastDeploy framework memory usage <code>fd_memory_after_load</code>; note the former is actual GPU memory usage (may include other processes), the latter is memory used by FD framework itself;</p>
+</li>
+<li>
+<p>According to user-configured <code>max_num_batched_tokens</code> (default: <code>max_model_len</code>), perform fake prefill computation with corresponding length input data, record current maximum FastDeploy framework memory allocation <code>fd_memory_after_prefill</code>, thus <code>model computation intermediate activation values</code> can be considered as <code>fd_memory_after_prefill - fd_memory_after_load</code>;</p>
+</li>
+<li>At this point, available GPU memory for KVCache allocation (taking A800 80G as example) is <code>80GB * gpu_memory_utilization - total_memory_after_load - (fd_memory_after_prefill - fd_memory_after_load)</code></li>
+<li>Based on model KVCache precision (e.g. 8bit/16bit), calculate memory size per block, then calculate total allocatable blocks, assign to <code>num_gpu_blocks_override</code></li>
+</ul>
+<blockquote>
+<p>In service startup logs, we can find <code>Reset block num, the total_block_num:17220, prefill_kvcache_block_num:12915</code> in log/fastdeploy.log, where <code>total_block_num</code> is the automatically calculated KVCache block count, multiply by <code>block_size</code> to get total cacheable Tokens.</p>
+</blockquote>
+<h2 id="2-relationship-between-kv_cache_ratio-block_size-and-max_num_seqs">2. Relationship between <code>kv_cache_ratio</code>, <code>block_size</code> and <code>max_num_seqs</code>?</h2>
+<ul>
+<li>FastDeploy divides KVCache between Prefill and Decode phases according to <code>kv_cache_ratio</code>. When configuring this parameter, you can use <code>kv_cache_ratio = average input Tokens / (average input + average output Tokens)</code>. Typically input is 3x output, so can be configured as 0.75.</li>
+<li><code>max_num_seqs</code> is the maximum concurrency in Decode phase, generally can be set to maximum 128, but users can also configure based on KVCache situation, e.g. output KVCache Token amount is <code>decode_token_cache = total_block_num * (1 - kv_cache_ratio) * block_size</code>, to prevent extreme OOM situations, can configure <code>max_num_seqs = decode_token_cache / average output Tokens</code>, not exceeding 128.</li>
+</ul>
+<h2 id="3-enable_chunked_prefill-parameter-description">3. <code>enable_chunked_prefill</code> parameter description</h2>
+<p>When <code>enable_chunked_prefill</code> is enabled, the service processes long input sequences through dynamic chunking, significantly improving GPU resource utilization. In this mode, the original <code>max_num_batched_tokens</code> parameter no longer constrains the batch token count in prefill phase (limiting single prefill token count), thus introducing <code>max_num_partial_prefills</code> parameter specifically to limit concurrently processed partial batches.</p>
+<p>To optimize scheduling priority for short requests, new <code>max_long_partial_prefills</code> and <code>long_prefill_token_threshold</code> parameter combination is added. The former limits the number of long requests in single prefill batch, the latter defines the token threshold for long requests. The system will prioritize batch space for short requests, thereby reducing short request latency in mixed workload scenarios while maintaining stable throughput.</p>
+<h2 id="4-graphoptimizationbackend-related-configuration-parameters">4. GraphOptimizationBackend related configuration parameters</h2>
+<p>Currently, only user configuration of the following parameters is supported：
+- <code>use_cudagraph</code> : bool = False
+- <code>graph_optimization_config</code> :  Dict[str, Any]
+  - <code>graph_opt_level</code>: int = 0
+  - <code>use_cudagraph</code>: bool = False
+  - <code>cudagraph_capture_sizes</code> : List[int] = None</p>
+<p>CudaGrpah can be enabled by setting <code>--use-cudagraph</code> or <code>--graph-optimization-config '{"use_cudagraph":true}'</code>. Using two different methods to set the use graph simultaneously may cause conflicts.</p>
+<p>The <code>graph_opt_level</code> parameter within <code>--graph-optimization-config</code> is used to configure the graph optimization level, with the following available options:
+- <code>0</code>: Use Dynamic compute graph, default to 0
+- <code>1</code>: Use Static compute graph, during the initialization phase, Paddle API will be used to convert the dynamic image into a static image
+- <code>2</code>: Base on Static compute graph, use the complier(CINN, Compiler Infrastructure for Neural Networks) of Paddle  to compile and optimize</p>
+<p>In general, static graphs have lower Kernel Launch overhead than dynamic graphs, and it is recommended to use static graphs.
+For adapted models, FastDeploy's CudaGraph <em>can support both dynamic and static graphs</em> simultaneously.</p>
+<p>When CudaGraph is enabled in the default configuration, a list of Batch Sizes that CudaGraph needs to capture will be automatically set based on the 'max_num_deqs' parameter. The logic for generating the list of Batch Sizes that need to be captured is as follows：</p>
+<ol>
+<li>Generate a candidate list with a range of [1,1024]  Batch Size.</li>
+</ol>
+<pre><code>        # Batch Size [1, 2, 4, 8, 16, ... 120, 128]
+        candidate_capture_sizes = [1, 2, 4] + [8 * i for i in range(1, 17)]
+        # Batch Size (128, 144, ... 240, 256]
+        candidate_capture_sizes += [16 * i for i in range(9, 17)]
+        # Batch Size (256, 288, ... 992, 1024]
+        candidate_capture_sizes += [32 * i for i in range(17, 33)]
+</code></pre>
+<ol>
+<li>Crop the candidate list based on the user set 'max_num_deqs' to obtain a CudaGraph capture list with a range of [1,' max_num_deqs'].</li>
+</ol>
+<p>Users can also customize the batch size list that needs to be captured by CudaGraph through the parameter <code>cudagraph_capture_sizes</code> in<code>--graph-optimization-config</code>:</p>
+<pre><code>--graph-optimization-config '{&quot;cudagraph_capture_sizes&quot;: [1, 3, 5, 7, 9]}'
+</code></pre>
+<h3 id="cudagraph-related-parameters">CudaGraph related parameters</h3>
+<p>Using CudaGraph incurs some additional memory overhead, divided into two categories in FastDeploy:
+- Additional input Buffer overhead
+- CudaGraph uses dedicated memory pool, thus holding some intermediate activation memory isolated from main framework</p>
+<p>FastDeploy initialization sequence first uses <code>gpu_memory_utilization</code> parameter to calculate available memory for <code>KVCache</code>, after initializing <code>KVCache</code> then uses remaining memory to initialize CudaGraph. Since CudaGraph is not enabled by default currently, using default startup parameters may encounter <code>Out of memory</code> errors, can try following solutions:
+- Lower <code>gpu_memory_utilization</code> value, reserve more memory for CudaGraph.
+- Lower <code>max_num_seqs</code> to decrease the maximum concurrency.
+- Customize the batch size list that CudaGraph needs to capture through <code>graph_optimization_config</code>, and reduce the number of captured graphs by using <code>cudagraph_capture_sizes</code></p>
+<ul>
+<li>Before use, must ensure loaded model is properly decorated with <code>@support_graph_optimization</code>.</li>
+</ul>
+<p>```python
+  # 1. import decorator
+  from fastdeploy.model_executor.graph_optimization.decorator import support_graph_optimization
+  ...</p>
+<p># 2. add decorator
+  @support_graph_optimization
+  class Ernie4_5_Model(nn.Layer): # Note decorator is added to nn.Layer subclass
+      ...</p>
+<p># 3. modify parameter passing in ModelForCasualLM subclass's self.model()
+   class Ernie4_5_MoeForCausalLM(ModelForCasualLM):
+      ...
+      def forward(
+          self,
+          ids_remove_padding: paddle.Tensor,
+          forward_meta: ForwardMeta,
+      ):
+          hidden_states = self.model(ids_remove_padding=ids_remove_padding, # specify parameter name when passing
+                                     forward_meta=forward_meta)
+          return hidden_statesfrom fastdeploy.model_executor.graph_optimization.decorator import support_graph_optimization
+  ...</p>
+<p>@support_graph_optimization
+  class Ernie45TModel(nn.Layer): # Note decorator is added to nn.Layer subclass
+      ...
+  ```</p>
+<ul>
+<li>When <code>use_cudagraph</code> is enabled, currently only supports single-GPU inference, i.e. <code>tensor_parallel_size</code> set to 1.</li>
+<li>When <code>use_cudagraph</code> is enabled, cannot enable <code>enable_prefix_caching</code> or <code>enable_chunked_prefill</code>.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+    
+  </body>
+</html>

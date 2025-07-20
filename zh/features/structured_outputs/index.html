@@ -1,0 +1,1545 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>Structured Outputs - FastDeploy 2.0: Large Language Model Deployement</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.342714a4.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#structured-outputs" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="FastDeploy 2.0: Large Language Model Deployement" class="md-header__button md-logo" aria-label="FastDeploy 2.0: Large Language Model Deployement" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            FastDeploy 2.0: Large Language Model Deployement
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Structured Outputs
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/PaddlePaddle/FastDeploy" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    FastDeploy
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="FastDeploy 2.0: Large Language Model Deployement" class="md-nav__button md-logo" aria-label="FastDeploy 2.0: Large Language Model Deployement" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    FastDeploy 2.0: Large Language Model Deployement
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/PaddlePaddle/FastDeploy" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    FastDeploy
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FastDeploy 2.0
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Quick Start
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Quick Start
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            Installation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../get_started/installation/nvidia_gpu/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Nvidia GPU
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../get_started/installation/kunlunxin_xpu/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    KunlunXin XPU
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../get_started/installation/Enflame_gcu/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Enflame S60
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../get_started/installation/iluvatar_gpu/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Iluvatar CoreX
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../get_started/quick_start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Deployment For ERNIE-4.5-0.3B-Paddle
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../get_started/quick_start_vl/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Deployment for ERNIE-4.5-VL-28B-A3B
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../get_started/ernie-4.5/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ERNIE-4.5-300B-A47B
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../get_started/ernie-4.5-vl/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ERNIE-4.5-VL-424B-A47B
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Online Serving
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Online Serving
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../online_serving/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    OpenAI-Compitable API Server
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../online_serving/metrics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Monitor Metrics
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../online_serving/scheduler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scheduler
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../offline_inference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Offline Inference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Quantiation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Quantiation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quantization/online_quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Online Quantization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quantization/wint2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    WINT2 Quantization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Features
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Features
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../features/prefix_caching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Prefix Caching
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../features/disaggregated/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Disaggration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../features/chunked_prefill/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Chunked Prefill
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../features/load_balance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Load Balance
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../features/speculative_decoding/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Speculative Decoding
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../features/structured_outputs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Structured Outputs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../features/reasoning_output/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Reasoning Output
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../supported_models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Supported Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../benchmark/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Benchmark
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Usage
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            Usage
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../usage/log/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Log Description
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../usage/code_overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Code Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../usage/environment_variables/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Environment Variables
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      概述
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      使用方式
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="使用方式">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#openai" class="md-nav__link">
+    <span class="md-ellipsis">
+      OpenAI 接口
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openai-beta" class="md-nav__link">
+    <span class="md-ellipsis">
+      OpenAI beta 接口
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="structured-outputs">Structured Outputs</h1>
+<h2 id="_1">概述</h2>
+<p>Structured Outputs 是指通过预定义格式约束，使大模型生成内容严格遵循指定结构。该功能可显著提升生成结果的可控性，适用于需要精确格式输出的场景（如API调用、数据解析、代码生成等），同时支持动态语法扩展，平衡灵活性与规范性。</p>
+<p>FastDeploy 支持使用 <a href="https://xgrammar.mlc.ai/docs/">XGrammar</a> 后端生成结构化输出。</p>
+<p>支持输出格式</p>
+<ul>
+<li><code>json格式</code>: 输出内容为标准的 JSON 格式</li>
+<li><code>正则表达式格式（regex）</code>: 精确控制文本模式（如日期、邮箱、身份证号等），支持复杂正则表达式语法</li>
+<li><code>选项格式（choice）</code>: 输出严格限定在预定义选项中</li>
+<li><code>语法格式（grammar）</code>: 使用扩展 BNF 语法定义复杂结构，支持字段名、类型及逻辑关系的联合约束</li>
+<li><code>结构标签格式（structural_tag）</code>: 通过标签树定义结构化输出，支持嵌套标签、属性校验及混合约束</li>
+</ul>
+<h2 id="_2">使用方式</h2>
+<p>服务启动时，可以通过 <code>--guided-decoding-backend</code> 参数指定期望使用的后端，如果指定 <code>auto</code>, FastDeploy 会自动选择合适的后端。</p>
+<h3 id="openai">OpenAI 接口</h3>
+<p>FastDeploy 支持 OpenAI 的 <a href="https://platform.openai.com/docs/api-reference/completions">Completions</a> 和 <a href="https://platform.openai.com/docs/api-reference/chat">Chat Completions</a> API，OpenAI 通过 <code>response_format</code> 参数指定 Structured Outputs 的输出格式。</p>
+<p>FastDeploy 支持通过指定 <code>json_object</code> 来保证输出为json格式，如果想指定 JSON 内部具体参数名、类型等信息，可以通过 <code>json_schema</code> 来指定详细信息，详细使用方法可以参考示例。</p>
+<pre><code class="language-python">import openai
+
+port = &quot;8170&quot;
+client = openai.Client(base_url=f&quot;http://127.0.0.1:{port}/v1&quot;, api_key=&quot;null&quot;)
+
+completion = client.chat.completions.create(
+    model=&quot;null&quot;,
+    messages=[
+        {
+            &quot;role&quot;: &quot;user&quot;,
+            &quot;content&quot;: &quot;生成一个包含以下信息的JSON对象：中国四大发明名称、发明朝代及简要描述（每项不超过50字）&quot;,
+        }
+    ],
+    response_format={&quot;type&quot;: &quot;json_object&quot;}
+)
+print(completion.choices[0].message.content)
+print(&quot;\n&quot;)
+</code></pre>
+<p>输出</p>
+<pre><code>{&quot;inventions&quot;: [{&quot;name&quot;: &quot;造纸术&quot;, &quot;dynasty&quot;: &quot;东汉&quot;, &quot;description&quot;: &quot;蔡伦改进造纸术，用树皮、麻头等为原料，成本低廉，推动文化传播。&quot;}, {&quot;name&quot;: &quot;印刷术&quot;, &quot;dynasty&quot;: &quot;唐朝&quot;, &quot;description&quot;: &quot;雕版印刷术在唐朝出现，后毕昇发明活字印刷术，提高印刷效率。&quot;}, {&quot;name&quot;: &quot;火药&quot;, &quot;dynasty&quot;: &quot;唐朝&quot;, &quot;description&quot;: &quot;古代炼丹家偶然发明，后用于军事，改变了战争方式和格局。&quot;}, {&quot;name&quot;: &quot;指南针&quot;, &quot;dynasty&quot;: &quot;战国&quot;, &quot;description&quot;: &quot;最初称司南，后发展为指南针，为航海等提供方向指引。&quot;}]}
+</code></pre>
+<p>以下示例要求模型返回一个 book 信息的 json 数据，json 数据中必须包含<code>author、title、genre</code>三个字段，且<code>genre</code>必须在给定 <code>BookType</code> 中。</p>
+<pre><code class="language-python">import openai
+from pydantic import BaseModel
+from enum import Enum
+
+class BookType(str, Enum):
+    romance = &quot;Romance&quot;
+    historical = &quot;Historical&quot;
+    adventure = &quot;Adventure&quot;
+    mystery = &quot;Mystery&quot;
+    dystopian = &quot;Dystopian&quot;
+
+class BookDescription(BaseModel):
+    author: str
+    title: str
+    genre: BookType
+
+port = &quot;8170&quot;
+client = openai.Client(base_url=f&quot;http://127.0.0.1:{port}/v1&quot;, api_key=&quot;null&quot;)
+
+completion = client.chat.completions.create(
+    model=&quot;null&quot;,
+    messages=[
+        {
+            &quot;role&quot;: &quot;user&quot;,
+            &quot;content&quot;: &quot;生成一个JSON，描述一本中国的著作，要包含作者、标题和书籍类型。&quot;,
+        }
+    ],
+    response_format={
+        &quot;type&quot;: &quot;json_schema&quot;,
+        &quot;json_schema&quot;: {
+            &quot;name&quot;: &quot;book-description&quot;,
+            &quot;schema&quot;: BookDescription.model_json_schema()
+        },
+    },
+)
+print(completion.choices[0].message.content)
+print(&quot;\n&quot;)
+</code></pre>
+<p>输出</p>
+<pre><code>{&quot;author&quot;: &quot;曹雪芹&quot;, &quot;title&quot;: &quot;红楼梦&quot;, &quot;genre&quot;: &quot;Historical&quot;}
+</code></pre>
+<p><code>structural_tag</code> 可以提取输入内容中的重点信息，并调用指定方法，返回预定义的结构化输出。以下示例展示了通过 <code>structural_tag</code> 获取指定时区并输出格式化结果。</p>
+<pre><code class="language-python">import openai
+
+port = &quot;8170&quot;
+client = openai.Client(base_url=f&quot;http://127.0.0.1:{port}/v1&quot;, api_key=&quot;null&quot;)
+
+content_str = &quot;&quot;&quot;
+你有以下函数可以调用：
+
+{
+    &quot;name&quot;: &quot;get_current_date&quot;,
+    &quot;description&quot;: &quot;根据给定的时区获取当前日期和时间&quot;,
+    &quot;parameters&quot;: {
+        &quot;type&quot;: &quot;object&quot;,
+        &quot;properties&quot;: {
+            &quot;timezone&quot;: {
+                &quot;type&quot;: &quot;string&quot;,
+                &quot;description&quot;: &quot;获取当前日期和时间的时区, 例如: Asia/Shanghai&quot;,
+            }
+        },
+        &quot;required&quot;: [&quot;timezone&quot;],
+    }
+}
+
+如果你选择只调用函数，请按照以下格式回复：
+&lt;{start_tag}={function_name}&gt;{parameters}{end_tag}
+其中
+
+start_tag =&gt; `&lt;function`
+parameters =&gt; 一个JSON字典，其中函数参数名为键，函数参数值为值。
+end_tag =&gt; `&lt;/function&gt;`
+
+这是一个示例，
+&lt;function=example_function_name&gt;{&quot;example_name&quot;: &quot;example_value&quot;}&lt;/function&gt;
+
+注意：
+- 函数调用必须遵循指定的格式
+- 必须指定所需参数
+- 一次只能调用一个函数
+- 将整个函数调用回复放在一行上
+
+你是一个人工智能助理，请回答下列问题。
+&quot;&quot;&quot;
+
+completion = client.chat.completions.create(
+    model=&quot;null&quot;,
+    messages=[
+        {
+            &quot;role&quot;: &quot;system&quot;,
+            &quot;content&quot;: content_str,
+        },
+        {
+            &quot;role&quot;: &quot;user&quot;,
+            &quot;content&quot;: &quot;你今天去上海出差&quot;,
+        }
+    ],
+    response_format={
+        &quot;type&quot;: &quot;structural_tag&quot;,
+        &quot;structures&quot;: [
+            {
+                &quot;begin&quot;: &quot;&lt;function=get_current_date&gt;&quot;,
+                &quot;schema&quot;: {
+                    &quot;type&quot;: &quot;object&quot;,
+                    &quot;properties&quot;: {
+                        &quot;timezone&quot;: {
+                            &quot;type&quot;: &quot;string&quot;,
+                            &quot;description&quot;: &quot;获取当前日期和时间的时区, 例如: Asia/Shanghai&quot;,
+                        }
+                    },
+                    &quot;required&quot;: [&quot;timezone&quot;],
+                },
+                &quot;end&quot;: &quot;&lt;/function&gt;&quot;,
+            }
+        ],
+        &quot;triggers&quot;: [&quot;&lt;function=&quot;],
+    },
+)
+print(completion.choices[0].message.content)
+print(&quot;\n&quot;)
+</code></pre>
+<p>输出</p>
+<pre><code>&lt;function=get_current_date&gt;{&quot;timezone&quot;: &quot;Asia/Shanghai&quot;}&lt;/function&gt;
+</code></pre>
+<p>对于 <code>choice、grammar、regex</code>格式，FastDeploy 使用 <code>extra_body</code> 参数支持，<code>choice</code> 较为简单，指定后模型会在预定义选项中选择一个最优项。在 FastDeploy 中，可以通过 <code>guided_choice</code> 指定一组与定义选项，示例如下</p>
+<pre><code class="language-python">import openai
+
+port = &quot;8170&quot;
+client = openai.Client(base_url=f&quot;http://127.0.0.1:{port}/v1&quot;, api_key=&quot;null&quot;)
+
+completion = client.chat.completions.create(
+    model=&quot;null&quot;,
+    messages=[
+        {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;深圳的地标建筑是什么？&quot;}
+    ],
+    extra_body={&quot;guided_choice&quot;: [&quot;深圳平安国际金融中心&quot;, &quot;中国华润大厦（春笋大厦）&quot;, &quot;深圳京基100&quot;, &quot;深圳地王大厦&quot;]},
+)
+print(completion.choices[0].message.content)
+print(&quot;\n&quot;)
+</code></pre>
+<p>输出</p>
+<pre><code>深圳地王大厦
+</code></pre>
+<p><code>regex</code> 允许用户通过正则表达式限制输出格式，通常用于需要精确控制文本格式的场景。以下示例展示了通过模型生成一个标准格式的网络地址的过程。</p>
+<pre><code class="language-python">import openai
+
+port = &quot;8170&quot;
+client = openai.Client(base_url=f&quot;http://127.0.0.1:{port}/v1&quot;, api_key=&quot;null&quot;)
+
+completion = client.chat.completions.create(
+    model=&quot;null&quot;,
+    messages=[
+        {
+            &quot;role&quot;: &quot;user&quot;,
+            &quot;content&quot;: &quot;生成一个标准格式的网络地址，包括协议、域名。\n&quot;,
+        }
+    ],
+    extra_body={&quot;guided_regex&quot;: r&quot;^https:\/\/www\.[a-zA-Z]+\.com\/?$\n&quot;},
+)
+print(completion.choices[0].message.content)
+print(&quot;\n&quot;)
+</code></pre>
+<p>输出</p>
+<pre><code>https://www.example.com/
+</code></pre>
+<p><code>grammar</code> 允许用户通过 EBNF(Extended Backus-Naur Form) 语法描述一个限制规则，以下示例展示了通过 <code>guided_grammar</code> 限制模型输出一段html代码。</p>
+<pre><code class="language-python">import openai
+
+port = &quot;8170&quot;
+client = openai.Client(base_url=f&quot;http://127.0.0.1:{port}/v1&quot;, api_key=&quot;null&quot;)
+
+html_h1_grammar = &quot;&quot;&quot;
+    root ::= html_statement
+
+    html_statement ::= &quot;&lt;h1&quot; style_attribute? &quot;&gt;&quot; text &quot;&lt;/h1&gt;&quot;
+
+    style_attribute ::= &quot; style=&quot; dq style_value dq
+
+    style_value ::= (font_style (&quot;; &quot; font_weight)?) | (font_weight (&quot;; &quot; font_style)?)
+
+    font_style ::= &quot;font-family: '&quot; font_name &quot;'&quot;
+
+    font_weight ::= &quot;font-weight: &quot; weight_value
+
+    font_name ::= &quot;Arial&quot; | &quot;Times New Roman&quot; | &quot;Courier New&quot;
+
+    weight_value ::= &quot;normal&quot; | &quot;bold&quot;
+
+    text ::= [A-Za-z0-9 ]+
+
+    dq ::= [&quot;]
+&quot;&quot;&quot;
+
+completion = client.chat.completions.create(
+    model=&quot;null&quot;,
+    messages=[
+        {
+            &quot;role&quot;: &quot;user&quot;,
+            &quot;content&quot;: &quot;生成一段html的代码，对以下标题加粗、Times New Roman字体。标题：ERNIE Bot&quot;,
+        }
+    ],
+    extra_body={&quot;guided_grammar&quot;: html_h1_grammar},
+)
+print(completion.choices[0].message.content)
+print(&quot;\n&quot;)
+</code></pre>
+<p>输出</p>
+<pre><code>&lt;h1 style=&quot;font-family: 'Times New Roman'; font-weight: bold&quot;&gt;ERNIE Bot&lt;/h1&gt;
+</code></pre>
+<h3 id="openai-beta">OpenAI beta 接口</h3>
+<p>在 OpenAI Client 1.54.4 版本之后，提供了 <code>client.beta.chat.completions.parse</code> 接口，通过该接口，实现了与 Python 原生类型更好的支持。以下示例展示了使用该接口直接获取 <code>pydantic</code> 类型的结构化输出。</p>
+<pre><code class="language-python">from pydantic import BaseModel
+import openai
+
+class Info(BaseModel):
+    addr: str
+    height: int
+
+port = &quot;8170&quot;
+client = openai.Client(base_url=f&quot;http://127.0.0.1:{port}/v1&quot;, api_key=&quot;null&quot;)
+
+completion = client.beta.chat.completions.parse(
+    model=&quot;null&quot;,
+    messages=[
+        {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;上海东方明珠在上海市浦东新区世纪大道1号，高度为468米，请问上海东方明珠的地址和高度是多少？&quot;},
+    ],
+    response_format=Info,
+)
+
+message = completion.choices[0].message
+print(message)
+print(&quot;\n&quot;)
+assert message.parsed
+print(&quot;地址:&quot;, message.parsed.addr)
+print(&quot;高度:&quot;, message.parsed.height)
+</code></pre>
+<p>输出</p>
+<pre><code>ParsedChatCompletionMessage[Info](content='{&quot;addr&quot;: &quot;上海市浦东新区世纪大道1号&quot;, &quot;height&quot;: 468}', refusal=None, role='assistant', annotations=None, audio=None, function_call=None, tool_calls=None, parsed=Info(addr='上海市浦东新区世纪大道1号', height=468), reasoning_content=None)
+
+
+地址: 上海市浦东新区世纪大道1号
+高度: 468
+</code></pre>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../../..", "features": [], "search": "../../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+    
+  </body>
+</html>
