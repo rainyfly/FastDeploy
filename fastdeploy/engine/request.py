@@ -174,6 +174,11 @@ class Request:
 
         data.update(asdict(self.sampling_params))
         return data
+    
+    def __eq__(self, other):
+        if not isinstance(other, Request):
+            return False
+        return self.request_id == other.request_id 
 
     def get(self, key: str, default_value=None):
         if hasattr(self, key):

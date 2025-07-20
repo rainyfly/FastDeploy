@@ -252,7 +252,7 @@ class Scheduler:
                             break
                     else:
                         llm_logger.info(f"unknown type")
-            if scheduled_reqs:
+            # if scheduled_reqs:
                 # llm_logger.info(f"schedued_reqs: {scheduled_reqs}")
                 # llm_logger.info(f"self.stop_flags {self.stop_flags}")
             return scheduled_reqs

@@ -187,9 +187,9 @@ class GPUModelRunner(ModelRunnerBase):
                                                         1] = length
                 self.share_inputs['seq_lens_encoder'][idx:idx + 1] = length
                 self.share_inputs['step_seq_lens_decoder'][idx:idx + 1] = 0
-                self.share_inputs['prompt_lens'][idx:idx + 1] = len(request.prompt_token_ids)
+                self.share_inputs['prompt_lens'][idx:idx + 1] = len(input_ids)
                 self.share_inputs['is_block_step'][idx:idx + 1] = False
-                self.share_inputs['step_idx'][idx:idx + 1] = 0
+                self.share_inputs['step_idx'][idx:idx + 1] = len(request.output_token_ids) if prefill_end_index >= len(input_ids) else 0 
             elif (request.task_type == 1): # decode任务
                 # print(f"handle decode task {request} idx: {idx}")
                 encoder_block_num = len(request.block_tables)
