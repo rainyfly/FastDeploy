@@ -77,6 +77,8 @@ class IPCSignal:
         if suffix is not None:
             name = name + f".{suffix}"
 
+        self.name = name
+
         if create:
             assert not shared_memory_exists(name), f"ShareMemory: {name} already exists"
             self.shm = SharedMemory(create=True, size=array.nbytes, name=name)

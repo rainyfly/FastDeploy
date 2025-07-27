@@ -295,7 +295,8 @@ class GPUModelRunner(ModelRunnerBase):
         Process inputs for prefill tasks and insert it to share_inputs buffer
         TODO(gongshaotian): Refactor this func
         """
-
+        if "caches" not in self.share_inputs:
+            self.initialize_kv_cache()
         # NOTE(luotingdan): Set environment variable of prefill node
         if req_dicts[-1].disaggregate_info is not None and req_dicts[-1].disaggregate_info["role"] == "prefill":
             os.environ["PREFILL_NODE_ONE_STEP_STOP"] = "1"
@@ -806,6 +807,7 @@ class GPUModelRunner(ModelRunnerBase):
         # Initialzie attention meta data
         for attn_backend in self.attn_backends:
             attn_backend.init_attention_metadata(self.forward_meta)
+            logger.info("init_attention_metadata done")
 
     def initialize_kv_cache(self, profile: bool = False) -> None:
         """
@@ -826,7 +828,7 @@ class GPUModelRunner(ModelRunnerBase):
 
         # Get kv cache shape
         kv_cache_shape = self.attn_backends[0].get_kv_cache_shape(max_num_blocks=max_block_num)
-        local_rank = self.local_rank % self.parallel_config.tensor_parallel_size
+        tp_rank_id = self.local_rank % self.parallel_config.tensor_parallel_size
 
         if not profile and (
             self.parallel_config.enable_prefix_caching or self.parallel_config.splitwise_role != "mixed"
@@ -834,8 +836,8 @@ class GPUModelRunner(ModelRunnerBase):
             cache_kvs_list = []
             for i in range(self.model_config.num_hidden_layers):
                 key_cache = paddle.empty(shape=[], dtype=cache_type)
-                key_cache_name = f"key_caches_{i}_rank{local_rank}.device{self.device_id}"
-                val_cache_name = f"value_caches_{i}_rank{local_rank}.device{self.device_id}"
+                key_cache_name = f"key_caches_{i}_rank{tp_rank_id}.device{self.device_id}"
+                val_cache_name = f"value_caches_{i}_rank{tp_rank_id}.device{self.device_id}"
                 key_cache = share_external_data(key_cache, key_cache_name, kv_cache_shape)
                 cache_kvs_list.append(key_cache)
                 value_cache = paddle.empty(shape=[], dtype=cache_type)
@@ -1365,8 +1367,8 @@ class GPUModelRunner(ModelRunnerBase):
         """
         self.num_gpu_blocks = num_gpu_blocks
 
-        # Reset block table and kv cache with global block num
-        self.initialize_kv_cache()
+        # # Reset block table and kv cache with global block num
+        # self.initialize_kv_cache()
 
         # Reset free list
         free_list = list(

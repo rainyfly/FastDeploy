@@ -73,6 +73,7 @@ class CacheMessager:
         self.gpu_cache_kvs = gpu_cache_kvs
         self.rank = rank
         self.nranks = nranks
+        self.dp_rank_id = local_data_parallel_id
         address = (pod_ip, engine_worker_queue_port)
         self.engine_worker_queue = EngineWorkerQueue(
             address=address,
@@ -159,29 +160,31 @@ class CacheMessager:
             prefilled_layer_idx_data = np.zeros(shape=[1], dtype=np.int32)
             try:
                 step_shm_value = IPCSignal(
-                    name=f"splitwise_complete_prefilled_step_{self.rank}",
+                    name=f"splitwise_complete_prefilled_step_{self.dp_rank_id}",
                     array=prefilled_step_idx_data,
                     dtype=np.int32,
                     suffix=self.gpu_id,
                     create=True,
                 )
                 layer_shm_value = IPCSignal(
-                    name=f"splitwise_complete_prefilled_layer_{self.rank}",
+                    name=f"splitwise_complete_prefilled_layer_{self.dp_rank_id}",
                     array=prefilled_layer_idx_data,
                     dtype=np.int32,
                     suffix=self.gpu_id,
                     create=True,
                 )
+                logger.info(f"create shm for cache messager, name={step_shm_value.name}")
             except:
+                logger.info("failed, just read")
                 step_shm_value = IPCSignal(
-                    name=f"splitwise_complete_prefilled_step_{self.rank}",
+                    name=f"splitwise_complete_prefilled_step_{self.dp_rank_id}",
                     array=prefilled_step_idx_data,
                     dtype=np.int32,
                     suffix=self.gpu_id,
                     create=False,
                 )
                 layer_shm_value = IPCSignal(
-                    name=f"splitwise_complete_prefilled_layer_{self.rank}",
+                    name=f"splitwise_complete_prefilled_layer_{self.dp_rank_id}",
                     array=prefilled_layer_idx_data,
                     dtype=np.int32,
                     suffix=self.gpu_id,
@@ -199,7 +202,7 @@ class CacheMessager:
                 cache_info = self.engine_worker_queue.get_cache_info()
 
                 if cache_info:
-                    logger.debug(f"cache info {cache_info}")
+                    logger.info(f"cache info {cache_info}")
                     for info in cache_info:
                         if info["request_id"] in self.cache_info:
                             self.cache_info[info["request_id"]].update(info)
@@ -225,11 +228,12 @@ class CacheMessager:
 
                 if prefilled_step_idx == -1:
                     time.sleep(0.001)
+                    # logger.info(f"step_shm_value.value[0] {step_shm_value.value[0]}")
                     continue
                 if not self.cache_info:
                     time.sleep(0.001)
                     continue
-                logger.debug(f"prefilled_layer_idx: {prefilled_layer_idx}, prefilled_step_idx: {prefilled_step_idx}")
+                logger.info(f"prefilled_layer_idx: {prefilled_layer_idx}, prefilled_step_idx: {prefilled_step_idx}")
                 for req_id, item in list(self.cache_info.items()):
                     if "status" not in item:
                         continue
@@ -264,6 +268,7 @@ class CacheMessager:
 
                     for layer_idx in range(item["layer_idx"], current_layer_idx):
                         tic = time.time()
+                        logger.info(f"write cache for {target_ip}:{target_id} layer_id {layer_idx}")
                         return_code = self.messager[current_transfer_protocol].write_cache(
                             target_ip,
                             target_id,
@@ -281,7 +286,7 @@ class CacheMessager:
                                 f"req_id: {item['request_id']}, dest_ip: {target_ip}"
                             )
                             break
-
+                        logger.info(f"write cache for {target_ip}:{target_id} layer_id {layer_idx} done")
                         tok = time.time()
                         cost_time = tok - tic
                         block_num = len(src_block_ids)

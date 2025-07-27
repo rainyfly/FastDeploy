@@ -18,9 +18,9 @@ import redis
 
 from fastdeploy.utils import llm_logger
 
+from .dp_scheduler import DPScheduler
 from .global_scheduler import GlobalScheduler
 from .local_scheduler import LocalScheduler
-from .splitwise_scheduler import SplitWiseScheduler, SplitWiseSchedulerConfig
 
 
 class LocalSchedulerConfig:
@@ -227,7 +227,8 @@ class SchedulerConfig:
             self.config = GlobalSchedulerConfig(**kwargs)
 
         if name == "splitwise":
-            self.config = SplitWiseSchedulerConfig(**kwargs)
+            # self.config = SplitWiseSchedulerConfig(**kwargs)
+            self.config = LocalSchedulerConfig(**kwargs)
 
     def check(self):
         """
@@ -272,7 +273,15 @@ class SchedulerConfig:
             )
 
         if self.name == "splitwise":
-            return SplitWiseScheduler(self.config)
+            # return SplitWiseScheduler(self.config)
+            return DPScheduler(
+                max_size=self.config.max_size,
+                ttl=self.config.ttl,
+                enable_chunked_prefill=self.config.enable_chunked_prefill,
+                max_num_partial_prefills=self.config.max_num_partial_prefills,
+                max_long_partial_prefills=self.config.max_long_partial_prefills,
+                long_prefill_token_threshold=self.config.long_prefill_token_threshold,
+            )
 
         return LocalScheduler(
             max_size=self.config.max_size,

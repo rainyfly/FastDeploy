@@ -48,6 +48,7 @@ RemoteCacheKvIpc::save_cache_kv_complete_signal_layerwise_meta_data
                     + std::to_string(rank_id) + "." + std::to_string(device_id));
     std::string layer_shm_name = ("splitwise_complete_prefilled_layer_"
                     + std::to_string(rank_id) + "." + std::to_string(device_id));
+    std::cout << "step_shm_name: " << step_shm_name << "layer_shm_name: " << layer_shm_name << std::endl;
     if (const char* use_ep = std::getenv("ENABLE_EP_DP")){
         if(std::strcmp(use_ep, "1") == 0){
         step_shm_name = "splitwise_complete_prefilled_step_tprank0_dprank"

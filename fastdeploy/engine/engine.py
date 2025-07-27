@@ -249,7 +249,12 @@ class LLMEngine:
             host_ip = self.cfg.host_ip
             disaggregate = self.cfg.disaggregate_info
             if self.cfg.scheduler_config.name == "splitwise":
-                self.scheduler.start(role, host_ip, disaggregate)
+                request_queues = []
+                result_queue = multiprocessing.Queue()
+                for i in range(self.cfg.parallel_config.data_parallel_size):
+                    request_queues.append(multiprocessing.Queue())
+                self.scheduler.start(self.cfg.node_rank * self.cfg.worker_num_per_node, request_queues, result_queue)
+                # self.scheduler.start(role, host_ip, disaggregate)
 
             time.sleep(1)
 
@@ -267,6 +272,8 @@ class LLMEngine:
                                 self.cfg,
                                 i + self.cfg.node_rank * self.cfg.worker_num_per_node,
                                 self.ipc_signal_suffix,
+                                request_queues,
+                                result_queue,
                             ),
                         )
                     )

@@ -219,6 +219,7 @@ class AppendAttentionBackend(AttentionBackend):
         metadata = self.attention_metadata
 
         if self.pd_disaggregation_mode == "per_query":
+            print(f"update init_signal_layerwise layer_id {layer.layer_id + self.start_layer_index}")
             metadata.kv_signal_data_list[layer.layer_id] = init_signal_layerwise(
                 metadata.kv_signal_metadata,
                 layer.layer_id + self.start_layer_index,

@@ -52,14 +52,19 @@ class ExpertService:
         self.cfg = cfg
         start_pos = (local_data_parallel_id * self.cfg.tensor_parallel_size) % self.cfg.worker_num_per_node
         end_pos = ((local_data_parallel_id + 1) * self.cfg.tensor_parallel_size) % self.cfg.worker_num_per_node
-        self.cfg.cache_config.rdma_comm_ports = self.cfg.cache_config.rdma_comm_ports[start_pos:end_pos]
-        self.cfg.local_device_ids = self.cfg.device_ids.split(",")[start_pos:end_pos]
+        print(f"self.cfg_cache_config {self.cfg.cache_config.rdma_comm_ports} {start_pos} {end_pos}")
+        self.cfg.cache_config.rdma_comm_ports = self.cfg.cache_config.rdma_comm_ports[
+            start_pos : start_pos + self.cfg.tensor_parallel_size
+        ]
+        self.cfg.local_device_ids = self.cfg.device_ids.split(",")[
+            start_pos : start_pos + self.cfg.tensor_parallel_size
+        ]
         self.cfg.parallel_config.local_data_parallel_id = local_data_parallel_id
         self.cfg.disaggregate_info = None
 
         self.scheduler = cfg.scheduler_config.scheduler()
 
-        self.scheduler.reset_nodeid(f"{self.scheduler.infer.nodeid}_{local_data_parallel_id!s}")
+        # self.scheduler.reset_nodeid(f"{self.scheduler.infer.nodeid}_{local_data_parallel_id!s}")
 
         self.cfg.parallel_config.local_data_parallel_id = local_data_parallel_id
 
@@ -109,7 +114,7 @@ class ExpertService:
 
         self._finalizer = weakref.finalize(self, self._exit_sub_services)
 
-    def start(self, ipc_signal_suffix, local_data_parallel_id):
+    def start(self, ipc_signal_suffix, local_data_parallel_id, request_queues, result_queue):
         """
         Initializes the engine and starts its sub-services.
         If `api_server_pid` is defined, will launch a thread
@@ -145,7 +150,7 @@ class ExpertService:
         role = self.cfg.splitwise_role
         host_ip = self.cfg.host_ip
         disaggregate = self.cfg.disaggregate_info
-        self.scheduler.start(role, host_ip, disaggregate)
+        self.scheduler.start(local_data_parallel_id, request_queues, result_queue)
         self.cfg.print()
 
         console_logger.info(f"Worker processes are launched with {time.time() - start_time} seconds.")
@@ -354,13 +359,13 @@ class ExpertService:
             self.zmq_server.close()
 
 
-def start_expert_service(cfg, local_data_parallel_id, ipc_signal_suffix):
+def start_expert_service(cfg, local_data_parallel_id, ipc_signal_suffix, request_queues, result_queue):
     """
     Start expert service
     """
     expert_service = ExpertService(cfg, local_data_parallel_id)
     try:
-        expert_service.start(ipc_signal_suffix, local_data_parallel_id)
+        expert_service.start(ipc_signal_suffix, local_data_parallel_id, request_queues, result_queue)
         expert_service.split_connector.start_receiver()
     except Exception as e:
         llm_logger.exception(f"Expert service failed to start: {e}")

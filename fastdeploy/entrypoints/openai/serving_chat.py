@@ -70,8 +70,12 @@ class OpenAIServingChat:
             err_msg = f"Only master node can accept completion request, please send request to master node: {self.pod_ips[0]}"
             api_server_logger.error(err_msg)
             return ErrorResponse(message=err_msg, code=400)
-        if request.user is not None:
-            request_id = f"chatcmpl-{request.user}-{uuid.uuid4()}"
+        # if request.user is not None:
+        #     request_id = f"chatcmpl-{request.user}-{uuid.uuid4()}"
+        # else:
+        #     request_id = f"chatcmpl-{uuid.uuid4()}"
+        if request.extra_body is not None and request.extra_body.request_id is not None:
+            request_id = request.extra_body.request_id
         else:
             request_id = f"chatcmpl-{uuid.uuid4()}"
         api_server_logger.info(f"create chat completion request: {request_id}")
@@ -144,7 +148,9 @@ class OpenAIServingChat:
             if request.metadata is not None:
                 enable_thinking = request.metadata.get("enable_thinking")
                 include_stop_str_in_output = request.metadata.get("include_stop_str_in_output", False)
-            enable_return_token_ids = request.return_token_ids or (request.extra_body is not None and request.extra_body.get('return_token_ids', False))
+            enable_return_token_ids = request.return_token_ids or (
+                request.extra_body is not None and request.extra_body.get("return_token_ids", False)
+            )
             while num_choices > 0:
                 try:
                     raw_data = await asyncio.wait_for(dealer.read(), timeout=10)
@@ -186,13 +192,13 @@ class OpenAIServingChat:
                             choice = ChatCompletionResponseStreamChoice(
                                 index=i,
                                 delta=DeltaMessage(
-                                    role="assistant", 
-                                    content="", 
-                                    reasoning_content="", 
+                                    role="assistant",
+                                    content="",
+                                    reasoning_content="",
                                     tool_calls=None,
                                     prompt_token_ids=None,
                                     completion_token_ids=None,
-                                )
+                                ),
                             )
                             if enable_return_token_ids:
                                 choice.delta.prompt_token_ids = list(prompt_token_ids)
@@ -231,10 +237,10 @@ class OpenAIServingChat:
 
                     previous_num_tokens += len(output["token_ids"])
                     delta_message = DeltaMessage(
-                        content=delta_text, 
-                        reasoning_content=output.get("reasoning_content"), \
+                        content=delta_text,
+                        reasoning_content=output.get("reasoning_content"),
                         prompt_token_ids=None,
-                        completion_token_ids=None, 
+                        completion_token_ids=None,
                         tool_calls=output.get("tool_call_content", []),
                     )
 
@@ -322,7 +328,9 @@ class OpenAIServingChat:
         final_res = None
         enable_thinking = None
         include_stop_str_in_output = False
-        enable_return_token_ids = request.return_token_ids or (request.extra_body is not None and request.extra_body.get('return_token_ids', False))
+        enable_return_token_ids = request.return_token_ids or (
+            request.extra_body is not None and request.extra_body.get("return_token_ids", False)
+        )
         try:
             dealer = await aiozmq.create_zmq_stream(zmq.DEALER, connect=f"ipc:///dev/shm/router_{self.pid}.ipc")
             dealer.write([b"", request_id.encode("utf-8")])
