@@ -74,8 +74,8 @@ class OpenAIServingChat:
         #     request_id = f"chatcmpl-{request.user}-{uuid.uuid4()}"
         # else:
         #     request_id = f"chatcmpl-{uuid.uuid4()}"
-        if request.extra_body is not None and request.extra_body.request_id is not None:
-            request_id = request.extra_body.request_id
+        if request.extra_body is not None and request.extra_body['request_id'] is not None:
+            request_id = request.extra_body['request_id']
         else:
             request_id = f"chatcmpl-{uuid.uuid4()}"
         api_server_logger.info(f"create chat completion request: {request_id}")
