@@ -74,8 +74,8 @@ class OpenAIServingChat:
         #     request_id = f"chatcmpl-{request.user}-{uuid.uuid4()}"
         # else:
         #     request_id = f"chatcmpl-{uuid.uuid4()}"
-        if request.extra_body is not None and request.extra_body['request_id'] is not None:
-            request_id = request.extra_body['request_id']
+        if request.extra_body is not None and request.extra_body["request_id"] is not None:
+            request_id = request.extra_body["request_id"]
         else:
             request_id = f"chatcmpl-{uuid.uuid4()}"
         api_server_logger.info(f"create chat completion request: {request_id}")
@@ -117,6 +117,7 @@ class OpenAIServingChat:
         created_time = int(time.time())
         chunk_object_type: str = "chat.completion.chunk"
         first_iteration = True
+        response_direct = True
         previous_num_tokens = 0
         num_prompt_tokens = 0
         num_choices = 1
@@ -170,16 +171,24 @@ class OpenAIServingChat:
                     continue
                 response = msgpack.unpackb(raw_data[-1])
                 for res in response:
+                    api_server_logger.info(f"receive response: {res}")
                     if res.get("error_code", 200) != 200:
+                        if response_direct:
+                            yield json.dumps(res)
                         raise ValueError("{}".format(res["error_msg"]))
 
+                    if response_direct:
+                        yield json.dumps(res) + "\n"
+                        if res["finished"]:
+                            num_choices -= 1
+                            continue
                     self.engine_client.data_processor.process_response_dict(
                         res,
                         stream=True,
                         enable_thinking=enable_thinking,
                         include_stop_str_in_output=include_stop_str_in_output,
                     )
-
+                    api_server_logger.info(f"receive response after process: {res}")
                     if res["metrics"]["first_token_time"] is not None:
                         arrival_time = res["metrics"]["first_token_time"]
                         inference_start_time = res["metrics"]["inference_start_time"]
@@ -308,11 +317,13 @@ class OpenAIServingChat:
                 yield f"data: {chunk.model_dump_json(exclude_unset=True)}\n\n"
 
         except Exception as e:
-            error_data = self._create_streaming_error_response(str(e))
-            yield f"data: {error_data}\n\n"
+            if not response_direct:
+                error_data = self._create_streaming_error_response(str(e))
+                yield f"data: {error_data}\n\n"
         finally:
             dealer.close()
-            yield "data: [DONE]\n\n"
+            if not response_direct:
+                yield "data: [DONE]\n\n"
 
     async def chat_completion_full_generator(
         self,

@@ -85,6 +85,8 @@ class EngineWorkerQueue:
             ]
             self.finished_req_queue = [Queue() for _ in range(self.local_data_parallel_size)]
             self.cache_infos_init: List[List[Any]] = [list() for _ in range(self.local_data_parallel_size)]
+            self.connect_rdma_tasks_queue = [Queue() for _ in range(self.local_data_parallel_size)]
+            self.connect_rdma_tasks_response_queue = [Queue() for _ in range(self.local_data_parallel_size)]
             self.client_read_info_flag_init: List[List[int]] = [
                 [1] * self.num_client for _ in range(self.local_data_parallel_size)
             ]
@@ -135,6 +137,18 @@ class EngineWorkerQueue:
             )
 
             QueueManager.register(
+                "get_connect_rdma_tasks",
+                callable=lambda idx: self.connect_rdma_tasks_queue[idx],
+                proxytype=ListProxy,
+            )
+
+            QueueManager.register(
+                "get_connect_rdma_tasks_responses",
+                callable=lambda idx: self.connect_rdma_tasks_response_queue[idx],
+                proxytype=ListProxy,
+            )
+
+            QueueManager.register(
                 "get_client_read_info_flag",
                 callable=lambda idx: self.client_read_info_flag_init[idx],
                 proxytype=ListProxy,
@@ -180,6 +194,8 @@ class EngineWorkerQueue:
             QueueManager.register("get_disaggregate_requests")
             QueueManager.register("get_available_prefill_instances")
             QueueManager.register("get_finish_request_barrier")
+            QueueManager.register("get_connect_rdma_tasks")
+            QueueManager.register("get_connect_rdma_tasks_responses")
             self.manager = QueueManager(address=self.address, authkey=self.authkey)
             self._connect_with_retry()
 
@@ -200,6 +216,11 @@ class EngineWorkerQueue:
             self.available_prefill_instances = self.manager.get_available_prefill_instances()
             self.finish_request_barrier = self.manager.get_finish_request_barrier(self.local_data_parallel_id)
             self.finished_req_queue = self.manager.get_finish_request_queue(self.local_data_parallel_id)
+            # p/d互联
+            self.connect_rdma_task_queue = self.manager.get_connect_rdma_tasks(self.local_data_parallel_id)
+            self.connect_rdma_task_response_queue = self.manager.get_connect_rdma_tasks_responses(
+                self.local_data_parallel_id
+            )
             assert self.num_client == len(self.client_read_flag)
 
         if is_server:
@@ -289,6 +310,22 @@ class EngineWorkerQueue:
             return 0
         else:
             return self.available_prefill_instances.get()
+
+    def put_connect_rdma_task(self, connect_rdma_task):
+        self.connect_rdma_task_queue.put(connect_rdma_task)
+
+    def get_connect_rdma_task(self):
+        if not self.connect_rdma_task_queue:
+            return None
+        return self.connect_rdma_task_queue.get()
+
+    def put_connect_rdma_task_response(self, connect_rdma_task_response):
+        self.connect_rdma_task_response_queue.put(connect_rdma_task_response)
+
+    def get_connect_rdma_task_response(self):
+        if not self.connect_rdma_task_response_queue:
+            return None
+        return self.connect_rdma_task_response_queue.get()
 
     def put_cache_info(self, cache_info) -> None:
         """

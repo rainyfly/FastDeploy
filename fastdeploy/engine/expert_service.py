@@ -24,13 +24,14 @@ import traceback
 import weakref
 
 import numpy as np
+import zmq
 
 from fastdeploy.engine.resource_manager import ResourceManager
-from fastdeploy.inter_communicator import EngineWorkerQueue
+from fastdeploy.inter_communicator import EngineWorkerQueue, ZmqTcpServer
 from fastdeploy.metrics.metrics import main_process_metrics
 from fastdeploy.output.token_processor import TokenProcessor
 from fastdeploy.splitwise.splitwise_connector import SplitwiseConnector
-from fastdeploy.utils import EngineError, console_logger, llm_logger
+from fastdeploy.utils import EngineError, console_logger, envs, llm_logger
 
 
 class ExpertService:
@@ -113,6 +114,10 @@ class ExpertService:
             )
 
         self._finalizer = weakref.finalize(self, self._exit_sub_services)
+        recv_control_cmd_ports = envs.ZMQ_CONTROL_CMD_SERVER_PORTS.split(",")
+        self.recv_control_cmd_server = ZmqTcpServer(
+            port=recv_control_cmd_ports[local_data_parallel_id % 8], mode=zmq.ROUTER
+        )
 
     def start(self, ipc_signal_suffix, local_data_parallel_id, request_queues, result_queue):
         """
@@ -155,6 +160,24 @@ class ExpertService:
 
         console_logger.info(f"Worker processes are launched with {time.time() - start_time} seconds.")
         return True
+
+    def handle_control_cmd(self):
+        """
+        Receive a multipart message from the control cmd socket.
+        """
+        while self.running:
+            try:
+                task = self.recv_control_cmd_server.recv_control_cmd()
+                task_id_str = task_id.decode("utf-8")
+                if task["cmd"] == "get_payload":
+                    # self.resource_manager.
+                    pass
+                elif task["cmd"] == "get_metrics":
+                    pass
+                elif task["cmd"] == "connect_rdma":
+                    pass
+            except Exception as e:
+                llm_logger.error(f"recv_control_cmd handle task got error: {e}, {traceback.format_exc()!s}")
 
     def _insert_task_to_worker(self):
         """

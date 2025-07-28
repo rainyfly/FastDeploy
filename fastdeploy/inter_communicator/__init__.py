@@ -18,5 +18,6 @@ from .engine_cache_queue import EngineCacheQueue
 from .engine_worker_queue import EngineWorkerQueue
 from .ipc_signal import IPCSignal
 from .zmq_client import ZmqClient
+from .zmq_server import ZmqTcpServer
 
-__all__ = ["ZmqClient", "IPCSignal", "EngineWorkerQueue", "EngineCacheQueue"]
+__all__ = ["ZmqClient", "IPCSignal", "EngineWorkerQueue", "EngineCacheQueue", "ZmqTcpServer"]

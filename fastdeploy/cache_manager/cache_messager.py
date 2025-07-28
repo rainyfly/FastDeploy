@@ -148,6 +148,10 @@ class CacheMessager:
         layerwise_send_cache_thread.daemon = True
         layerwise_send_cache_thread.start()
 
+        connect_rdma_thread = threading.Thread(target=self._handle_connect_task)
+        connect_rdma_thread.daemon = True
+        connect_rdma_thread.start()
+
         logger.info(f"cache messager init finished, use {transfer_protocol}")
 
     def _prefill_layerwise_send_cache_thread(self):
@@ -314,3 +318,21 @@ class CacheMessager:
 
         except Exception as e:
             logger.error(f"prefill layerwise send cache thread has exception: {e}")
+
+    def _handle_connect_task(self):
+        while True:
+            try:
+                task = self.engine_worker_queue.get_connect_rdma_task()
+                if task is None:
+                    time.sleep(0.001)
+                    continue
+                task_id = task["task_id"]
+                ip, rdma_port = task["ip"], task["rdma_port"]
+                status = self.messager["rdma"].connect(ip, rdma_port)
+                if not status:
+                    response = {"task_id": task_id, "success": True}
+                else:
+                    response = {"task_id": task_id, "success": False}
+                self.engine_worker_queue.put_connect_rdma_task_response(response)
+            except Exception as e:
+                logger.error(f"handle_connect_task has exception: {e}")

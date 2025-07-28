@@ -78,6 +78,14 @@ environment_variables: dict[str, Callable[[], Any]] = {
     "EXPORTER_OTLP_HEADERS": lambda: os.getenv("EXPORTER_OTLP_HEADERS"),
     # enable kv cache block scheduler v1 (no need for kv_cache_ratio)
     "ENABLE_V1_KVCACHE_SCHEDULER": lambda: int(os.getenv("ENABLE_V1_KVCACHE_SCHEDULER", "0")),
+    # enable remote client to connect LLMEngine using zmq
+    "ENABLE_ENGINE_ZMQ_REMOTE_ACCESS": lambda: int(os.getenv("ENABLE_ENGINE_ZMQ_REMOTE_ACCESS", "0")),
+    # LLMEngine recieve requests port
+    "ZMQ_RECV_REQUEST_SERVER_PORT": lambda: os.getenv("ZMQ_RECV_REQUEST_SERVER_PORT", "8200"),
+    # LLMEngine send response port
+    "ZMQ_SEND_RESPONSE_SERVER_PORT": lambda: os.getenv("ZMQ_SEND_RESPONSE_SERVER_PORT", "8201"),
+    # LLMEngine recieve control command port
+    "ZMQ_CONTROL_CMD_SERVER_PORTS": lambda: os.getenv("ZMQ_CONTROL_CMD_SERVER_PORTS", "8202"),
 }
 
 
