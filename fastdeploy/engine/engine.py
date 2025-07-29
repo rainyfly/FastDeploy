@@ -330,14 +330,22 @@ class LLMEngine:
                 task_id_str = task["task_id"]
                 if task["cmd"] == "get_payload":
                     payload_info = self._get_current_server_info()
-                    self.recv_control_cmd_server.response_for_control_cmd(task_id_str, payload_info)
+                    result = {
+                        'task_id': task_id_str,
+                        'result': payload_info
+                    }
+                    self.recv_control_cmd_server.response_for_control_cmd(task_id_str, result)
 
                 elif task["cmd"] == "get_metrics":
                     metrics_text = get_filtered_metrics(
                         EXCLUDE_LABELS,
                         extra_register_func=lambda reg: main_process_metrics.register_all(reg, workers=1),
                     )
-                    self.recv_control_cmd_server.response_for_control_cmd(task_id_str, metrics_text)
+                    result = {
+                        'task_id': task_id_str,
+                        'result': metrics_text
+                    }
+                    self.recv_control_cmd_server.response_for_control_cmd(task_id_str, result)
                 elif task["cmd"] == "connect_rdma":
                     self.engine_worker_queue.put_connect_rdma_task(task)
 
@@ -347,8 +355,13 @@ class LLMEngine:
     def _handle_connect_rdma_results(self):
         while True:
             try:
-                result = self.engine_worker_queue.get_connect_rdma_task_response()
-                if result:
+                result_data = self.engine_worker_queue.get_connect_rdma_task_response()
+                if result_data:
+                    task_id_str = result_data['task_id']
+                    result = {
+                        'task_id': task_id_str,
+                        'result': result_data
+                    }
                     self.recv_control_cmd_server.response_for_control_cmd(task_id_str, result)
                 else:
                     time.sleep(0.001)
