@@ -1,10 +1,12 @@
 import threading
 from multiprocessing import Queue
 from typing import Dict, List
+from typing import Dict, List, Optional, Tuple
 
 from fastdeploy.engine.request import Request, RequestOutput
 from fastdeploy.scheduler.data import ScheduledResponse
 from fastdeploy.scheduler.local_scheduler import LocalScheduler
+from fastdeploy.utils import scheduler_logger
 
 
 class DPLocalScheduler(LocalScheduler):
@@ -16,6 +18,7 @@ class DPLocalScheduler(LocalScheduler):
         max_num_partial_prefills: int,
         max_long_partial_prefills: int,
         long_prefill_token_threshold: int,
+        splitwise_role: str = 'prefill'
     ):
         super().__init__(
             max_size,
@@ -25,6 +28,7 @@ class DPLocalScheduler(LocalScheduler):
             max_long_partial_prefills,
             long_prefill_token_threshold,
         )
+        self.splitwise_role = splitwise_role
 
     def put_results(self, results: List[RequestOutput]):
         """
@@ -46,6 +50,50 @@ class DPLocalScheduler(LocalScheduler):
                     continue
                 self.responses[response.request_id].append(response)
             self.responses_not_empty.notify_all()
+    
+    def _recycle(self, request_id: Optional[str] = None):
+        """
+        Clean up expired or completed requests to free memory.
+
+        Args:
+            request_id: Optional specific request ID to remove.
+                       If None, removes all expired requests.
+        """
+        if request_id is not None:
+            self.requests.pop(request_id, None)
+            self.responses.pop(request_id, None)
+            if self.splitwise_role == 'decode':
+                return
+            self.ids.pop(self.ids.index(request_id))
+            self.ids_read_cursor -= 1
+            return
+
+        if self.max_size <= 0:
+            return
+
+        if len(self.requests) <= self.max_size:
+            return
+
+        now = time.time()
+        expired_ids = []
+        for request_id in self.ids:
+            request = self.requests[request_id]
+            if now - request.schedule_time < self.ttl:
+                break
+            expired_ids.append(request.request_id)
+
+        for i, expired_id in enumerate(expired_ids):
+            self.requests.pop(expired_id, None)
+            self.responses.pop(expired_id, None)
+            self.ids.pop(i)
+
+        if len(expired_ids) > 0:
+            if len(expired_ids) - 1 >= self.ids_read_cursor:
+                self.ids_read_cursor = 0
+            else:
+                self.ids_read_cursor -= len(expired_ids)
+
+
 
 
 class DPScheduler:
@@ -57,6 +105,7 @@ class DPScheduler:
         max_num_partial_prefills: int,
         max_long_partial_prefills: int,
         long_prefill_token_threshold: int,
+        splitwise_role: str = 'prefill'
     ):
         self._scheduler = DPLocalScheduler(
             max_size,
@@ -65,6 +114,7 @@ class DPScheduler:
             max_num_partial_prefills,
             max_long_partial_prefills,
             long_prefill_token_threshold,
+            splitwise_role
         )
 
     def start(self, dp_rank: int, request_queues: List[Queue], result_queue: Queue):

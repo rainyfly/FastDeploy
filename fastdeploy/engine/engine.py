@@ -491,7 +491,8 @@ class LLMEngine:
     def _insert_zmq_task_to_scheduler(self):
         if self.api_server_pid is None:
             return
-
+        if self.cfg.splitwise_role == "decode":
+            return
         added_requests: Dict[str, int] = dict()
         while self.running:
             try:

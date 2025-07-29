@@ -41,6 +41,7 @@ class LocalSchedulerConfig:
         max_num_partial_prefills: int = 1,
         max_long_partial_prefills: int = 1,
         long_prefill_token_threshold: int = 0,
+        splitwise_role: str = 'prefill',
         **kwargs,
     ):
         """
@@ -70,6 +71,7 @@ class LocalSchedulerConfig:
         self.long_prefill_token_threshold = long_prefill_token_threshold
         if self.long_prefill_token_threshold == 0:
             self.long_prefill_token_threshold = int(self.max_model_len * 0.04)
+        self.splitwise_role = splitwise_role
 
     def check(self):
         """
@@ -281,6 +283,7 @@ class SchedulerConfig:
                 max_num_partial_prefills=self.config.max_num_partial_prefills,
                 max_long_partial_prefills=self.config.max_long_partial_prefills,
                 long_prefill_token_threshold=self.config.long_prefill_token_threshold,
+                splitwise_role=self.config.splitwise_role,
             )
 
         return LocalScheduler(
