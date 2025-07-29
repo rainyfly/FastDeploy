@@ -337,7 +337,7 @@ class LLMEngine:
 
                 elif task["cmd"] == "get_metrics":
                     metrics_text = get_filtered_metrics(
-                        EXCLUDE_LABELS,
+                        [],
                         extra_register_func=lambda reg: main_process_metrics.register_all(reg, workers=1),
                     )
                     result = {"task_id": task_id_str, "result": metrics_text}

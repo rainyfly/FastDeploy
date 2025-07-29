@@ -323,7 +323,6 @@ class CacheMessager:
         while True:
             try:
                 task = self.engine_worker_queue.get_connect_rdma_task()
-                logger.info(f"_handle_connect_task recv task: {task}")
                 if task is None:
                     time.sleep(0.001)
                     continue
@@ -332,9 +331,9 @@ class CacheMessager:
                 ip, rdma_port = task["ip"], task["rdma_port"]
                 status = self.messager["rdma"].connect(ip, rdma_port)
                 if not status:
-                    response = {"task_id": task_id, "success": True}
-                else:
                     response = {"task_id": task_id, "success": False}
+                else:
+                    response = {"task_id": task_id, "success": True}
                 self.engine_worker_queue.put_connect_rdma_task_response(response)
             except Exception as e:
                 logger.error(f"handle_connect_task has exception: {e}")

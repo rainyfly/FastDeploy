@@ -85,15 +85,15 @@ class EngineWorkerQueue:
             ]
             self.finished_req_queue = [Queue() for _ in range(self.local_data_parallel_size)]
             self.cache_infos_init: List[List[Any]] = [list() for _ in range(self.local_data_parallel_size)]
-            self.connect_rdma_tasks_queues = [Queue() for _ in range(self.local_data_parallel_size)]
-            self.connect_rdma_tasks_response_queues = [Queue() for _ in range(self.local_data_parallel_size)]
+            self.connect_rdma_tasks_list = [list() for _ in range(self.local_data_parallel_size)]
+            self.connect_rdma_tasks_response_list = [list() for _ in range(self.local_data_parallel_size)]
             self.client_read_info_flag_init: List[List[int]] = [
                 [1] * self.num_client for _ in range(self.local_data_parallel_size)
             ]
             self.lock_info_init: List[threading.Lock] = [
                 threading.Lock() for _ in range(self.local_data_parallel_size)
             ]
-
+            self.connect_task_lock_init: List[threading.Lock] = [threading.Lock() for _ in range(self.local_data_parallel_size)]
             self.finish_request_barrier = [
                 threading.Barrier(self.num_client) for _ in range(self.local_data_parallel_size)
             ]
@@ -112,6 +112,11 @@ class EngineWorkerQueue:
             QueueManager.register(
                 "get_lock",
                 callable=lambda idx: self.lock_init[idx],
+                proxytype=AcquirerProxy,
+            )
+            QueueManager.register(
+                "get_connect_task_lock",
+                callable=lambda idx: self.connect_task_lock_init[idx],
                 proxytype=AcquirerProxy,
             )
             QueueManager.register(
@@ -138,12 +143,14 @@ class EngineWorkerQueue:
 
             QueueManager.register(
                 "get_connect_rdma_tasks",
-                callable=lambda idx: self.connect_rdma_tasks_queues[idx],
+                callable=lambda idx: self.connect_rdma_tasks_list[idx],
+                proxytype=ListProxy
             )
 
             QueueManager.register(
                 "get_connect_rdma_tasks_responses",
-                callable=lambda idx: self.connect_rdma_tasks_response_queues[idx],
+                callable=lambda idx: self.connect_rdma_tasks_response_list[idx],
+                proxytype=ListProxy
             )
 
             QueueManager.register(
@@ -194,6 +201,7 @@ class EngineWorkerQueue:
             QueueManager.register("get_finish_request_barrier")
             QueueManager.register("get_connect_rdma_tasks")
             QueueManager.register("get_connect_rdma_tasks_responses")
+            QueueManager.register("get_connect_task_lock")
             self.manager = QueueManager(address=self.address, authkey=self.authkey)
             self._connect_with_retry()
 
@@ -201,6 +209,7 @@ class EngineWorkerQueue:
             self.tasks: ListProxy = self.manager.get_tasks(self.local_data_parallel_id)
             self.client_read_flag: ListProxy = self.manager.get_client_read_flag(self.local_data_parallel_id)
             self.lock: AcquirerProxy = self.manager.get_lock(self.local_data_parallel_id)
+            self.get_task_lock = self.manager.get_connect_task_lock(self.local_data_parallel_id)
             self.read_finish_flag: ValueProxy = self.manager.get_read_finish_flag(self.local_data_parallel_id)
             self.connected_client_counter: ValueProxy = self.manager.get_connected_client_counter(
                 self.local_data_parallel_id
@@ -311,35 +320,50 @@ class EngineWorkerQueue:
 
     def put_connect_rdma_task(self, connect_rdma_task):
         llm_logger.info(
-            f"put_connect_rdma_task : {connect_rdma_task}, local_data_parallel_id: {self.local_data_parallel_id}"
+            f"put_connect_rdma_task : {connect_rdma_task}, local_data_parallel_id: {self.local_data_parallel_id} self.address {self.address}"
         )
-        self.connect_rdma_task_queue.put(connect_rdma_task)
-        llm_logger.info(f"put_connect_rdma_task: qsize {self.connect_rdma_task_queue.qsize()}")
+        self.get_task_lock.acquire()
+        self.connect_rdma_task_queue.append(connect_rdma_task)
+        self.get_task_lock.release()
+        llm_logger.info(f"put_connect_rdma_task: length {len(self.connect_rdma_task_queue)}")
 
     def get_connect_rdma_task(self):
         result = None
-        if self.connect_rdma_task_queue.qsize() == 0:
-            llm_logger.info(f"get_connect_rdma_task no task")
+        self.get_task_lock.acquire()
+        if len(self.connect_rdma_task_queue) == 0:
+            # llm_logger.info(f"get_connect_rdma_task no task local_data_parallel_id: {self.local_data_parallel_id} self.address {self.address}")
+            self.get_task_lock.release()
             return result
         try:
-            result = self.connect_rdma_task_queue.get()
+            result = self.connect_rdma_task_queue.pop(0)
+            self.get_task_lock.release()
+            llm_logger.info(f"get_connect_rdma_task successful local_data_parallel_id: {self.local_data_parallel_id} self.address {self.address}")
+            return result
         except Exception as e:
             llm_logger.info(f"get_connect_rdma_task got exception: {e}")
+            self.get_task_lock.release()
             return result
 
     def put_connect_rdma_task_response(self, connect_rdma_task_response):
         llm_logger.info(f"put_connect_rdma_task_response : {connect_rdma_task_response}")
-        self.connect_rdma_task_response_queue.put(connect_rdma_task_response)
+        self.get_task_lock.acquire()
+        self.connect_rdma_task_response_queue.append(connect_rdma_task_response)
+        self.get_task_lock.release()
 
     def get_connect_rdma_task_response(self):
         result = None
-        if self.connect_rdma_task_response_queue.qsize() == 0:
-            llm_logger.info(f"connect_rdma_task_response_queue no task")
+        self.get_task_lock.acquire()
+        if len(self.connect_rdma_task_response_queue) == 0:
+            # llm_logger.info(f"connect_rdma_task_response_queue no task")
+            self.get_task_lock.release()
             return result
         try:
-            result = self.connect_rdma_task_response_queue.get()
+            result = self.connect_rdma_task_response_queue.pop(0)
+            self.get_task_lock.release()
+            return result
         except Exception as e:
             llm_logger.info(f"get_connect_rdma_task_response got exception: {e}")
+            self.get_task_lock.release()
             return result
 
     def put_cache_info(self, cache_info) -> None:

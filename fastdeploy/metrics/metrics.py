@@ -351,7 +351,7 @@ class MetricsManager:
             registry.register(work_process_metrics.request_params_max_tokens)
             registry.register(work_process_metrics.prompt_tokens_total)
             registry.register(work_process_metrics.request_prompt_tokens)
-        if hasattr(main_process_metrics, "spec_decode_draft_acceptance_rate"):
+        if hasattr(self, "spec_decode_draft_acceptance_rate"):
             self.register_speculative_metrics(registry)
 
     @classmethod
