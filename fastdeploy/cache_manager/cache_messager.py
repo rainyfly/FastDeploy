@@ -323,9 +323,11 @@ class CacheMessager:
         while True:
             try:
                 task = self.engine_worker_queue.get_connect_rdma_task()
+                logger.info(f"_handle_connect_task recv task: {task}")
                 if task is None:
                     time.sleep(0.001)
                     continue
+                logger.info(f"_handle_connect_task recv task: {task}")
                 task_id = task["task_id"]
                 ip, rdma_port = task["ip"], task["rdma_port"]
                 status = self.messager["rdma"].connect(ip, rdma_port)

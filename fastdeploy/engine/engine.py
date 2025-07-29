@@ -327,6 +327,7 @@ class LLMEngine:
         while self.running:
             try:
                 task = self.recv_control_cmd_server.recv_control_cmd()
+                llm_logger.info(f"Recieve control task: {task}")
                 task_id_str = task["task_id"]
                 if task["cmd"] == "get_payload":
                     payload_info = self._get_current_server_info()
@@ -334,6 +335,7 @@ class LLMEngine:
                         'task_id': task_id_str,
                         'result': payload_info
                     }
+                    llm_logger.info(f"Response for task: {task_id_str}")
                     self.recv_control_cmd_server.response_for_control_cmd(task_id_str, result)
 
                 elif task["cmd"] == "get_metrics":
@@ -345,6 +347,7 @@ class LLMEngine:
                         'task_id': task_id_str,
                         'result': metrics_text
                     }
+                    llm_logger.info(f"Response for task: {task_id_str}")
                     self.recv_control_cmd_server.response_for_control_cmd(task_id_str, result)
                 elif task["cmd"] == "connect_rdma":
                     self.engine_worker_queue.put_connect_rdma_task(task)
@@ -362,6 +365,7 @@ class LLMEngine:
                         'task_id': task_id_str,
                         'result': result_data
                     }
+                    llm_logger.info(f"Response for task: {task_id_str}")
                     self.recv_control_cmd_server.response_for_control_cmd(task_id_str, result)
                 else:
                     time.sleep(0.001)
