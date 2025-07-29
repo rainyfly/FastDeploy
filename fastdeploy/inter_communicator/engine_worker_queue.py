@@ -139,13 +139,11 @@ class EngineWorkerQueue:
             QueueManager.register(
                 "get_connect_rdma_tasks",
                 callable=lambda idx: self.connect_rdma_tasks_queue[idx],
-                proxytype=ListProxy,
             )
 
             QueueManager.register(
                 "get_connect_rdma_tasks_responses",
                 callable=lambda idx: self.connect_rdma_tasks_response_queue[idx],
-                proxytype=ListProxy,
             )
 
             QueueManager.register(
@@ -315,17 +313,25 @@ class EngineWorkerQueue:
         self.connect_rdma_task_queue.put(connect_rdma_task)
 
     def get_connect_rdma_task(self):
-        if not self.connect_rdma_task_queue:
-            return None
-        return self.connect_rdma_task_queue.get()
+        result = None
+        if self.connect_rdma_task_queue.qsize() == 0:
+            return result
+        try:
+            result = self.connect_rdma_task_queue.get()
+        except:
+            return result
 
     def put_connect_rdma_task_response(self, connect_rdma_task_response):
         self.connect_rdma_task_response_queue.put(connect_rdma_task_response)
 
     def get_connect_rdma_task_response(self):
-        if not self.connect_rdma_task_response_queue:
-            return None
-        return self.connect_rdma_task_response_queue.get()
+        result = None
+        if self.connect_rdma_task_response_queue.qsize() == 0:
+            return result
+        try:
+            result = self.connect_rdma_task_response_queue.get()
+        except:
+            return result
 
     def put_cache_info(self, cache_info) -> None:
         """
