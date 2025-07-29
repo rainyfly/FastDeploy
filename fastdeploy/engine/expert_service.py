@@ -31,11 +31,7 @@ from fastdeploy.inter_communicator import EngineWorkerQueue, ZmqTcpServer
 from fastdeploy.output.token_processor import TokenProcessor
 from fastdeploy.splitwise.splitwise_connector import SplitwiseConnector
 from fastdeploy.utils import EngineError, console_logger, envs, llm_logger
-from fastdeploy.metrics.metrics import (
-    EXCLUDE_LABELS,
-    get_filtered_metrics,
-    main_process_metrics
-)
+from fastdeploy.metrics.metrics import EXCLUDE_LABELS, get_filtered_metrics, main_process_metrics
 
 
 class ExpertService:
@@ -168,7 +164,7 @@ class ExpertService:
 
         console_logger.info(f"Worker processes are launched with {time.time() - start_time} seconds.")
         return True
-    
+
     def _get_current_server_info(self):
         """
         获取服务当前资源信息
@@ -198,10 +194,7 @@ class ExpertService:
                 task_id_str = task["task_id"]
                 if task["cmd"] == "get_payload":
                     payload_info = self._get_current_server_info()
-                    result = {
-                        'task_id': task_id_str,
-                        'result': payload_info
-                    }
+                    result = {"task_id": task_id_str, "result": payload_info}
                     llm_logger.info(f"Response for task: {task_id_str}")
                     self.recv_control_cmd_server.response_for_control_cmd(task_id_str, result)
 
@@ -210,10 +203,7 @@ class ExpertService:
                         EXCLUDE_LABELS,
                         extra_register_func=lambda reg: main_process_metrics.register_all(reg, workers=1),
                     )
-                    result = {
-                        'task_id': task_id_str,
-                        'result': metrics_text
-                    }
+                    result = {"task_id": task_id_str, "result": metrics_text}
                     llm_logger.info(f"Response for task: {task_id_str}")
                     self.recv_control_cmd_server.response_for_control_cmd(task_id_str, result)
                 elif task["cmd"] == "connect_rdma":
@@ -227,11 +217,8 @@ class ExpertService:
             try:
                 result_data = self.engine_worker_queue.get_connect_rdma_task_response()
                 if result_data:
-                    task_id_str = result_data['task_id']
-                    result = {
-                        'task_id': task_id_str,
-                        'result': result_data
-                    }
+                    task_id_str = result_data["task_id"]
+                    result = {"task_id": task_id_str, "result": result_data}
                     llm_logger.info(f"Response for task: {task_id_str}")
                     self.recv_control_cmd_server.response_for_control_cmd(task_id_str, result)
                 else:

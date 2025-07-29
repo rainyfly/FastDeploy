@@ -310,7 +310,9 @@ class EngineWorkerQueue:
             return self.available_prefill_instances.get()
 
     def put_connect_rdma_task(self, connect_rdma_task):
-        llm_logger.info(f"put_connect_rdma_task : {connect_rdma_task}, local_data_parallel_id: {self.local_data_parallel_id}")
+        llm_logger.info(
+            f"put_connect_rdma_task : {connect_rdma_task}, local_data_parallel_id: {self.local_data_parallel_id}"
+        )
         self.connect_rdma_task_queue.put(connect_rdma_task)
         llm_logger.info(f"put_connect_rdma_task: qsize {self.connect_rdma_task_queue.qsize()}")
 
