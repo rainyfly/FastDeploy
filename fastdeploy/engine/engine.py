@@ -51,7 +51,6 @@ from fastdeploy.inter_communicator import (
     ZmqTcpServer,
 )
 from fastdeploy.metrics.metrics import (
-    EXCLUDE_LABELS,
     get_filtered_metrics,
     main_process_metrics,
 )
@@ -376,6 +375,7 @@ class LLMEngine:
                     continue
                 for request_id, contents in results.items():
                     if envs.ENABLE_ENGINE_ZMQ_REMOTE_ACCESS:
+                        llm_logger.info(f"sent result for {request_id} {contents}")
                         self.send_response_server.send_multipart(request_id, contents)
                     else:
                         self.zmq_server.send_multipart(request_id, contents)
