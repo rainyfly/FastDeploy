@@ -50,10 +50,7 @@ from fastdeploy.inter_communicator import (
     ZmqClient,
     ZmqTcpServer,
 )
-from fastdeploy.metrics.metrics import (
-    get_filtered_metrics,
-    main_process_metrics,
-)
+from fastdeploy.metrics.metrics import get_filtered_metrics, main_process_metrics
 from fastdeploy.metrics.trace_util import start_span, start_span_request
 from fastdeploy.model_executor.guided_decoding import schema_checker
 from fastdeploy.output.token_processor import TokenProcessor, WarmUpTokenProcessor
