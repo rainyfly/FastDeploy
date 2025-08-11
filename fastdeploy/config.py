@@ -27,7 +27,6 @@ from paddleformers.transformers.configuration_utils import PretrainedConfig
 import fastdeploy
 from fastdeploy import envs
 from fastdeploy.model_executor.layers.quantization.quant_base import QuantConfigBase
-from fastdeploy.platforms import current_platform
 from fastdeploy.utils import check_unified_ckpt, get_logger
 
 logger = get_logger("config", "config.log")
@@ -63,11 +62,6 @@ class ErnieArchitectures:
         "Ernie4_5_MoeForCausalLM",
         "Ernie4_5_VLMoeForConditionalGeneration",
     }
-
-    @classmethod
-    def register_ernie_model_arch(cls, model_class):
-        if model_class.name().startswith("Ernie") and model_class.name() not in cls.ARCHITECTURES:
-            cls.ARCHITECTURES.add(model_class.name())
 
     @classmethod
     def contains_ernie_arch(cls, architectures):
@@ -123,7 +117,6 @@ class ModelConfig:
         self.enable_mm = False
         self.enable_redundant_experts = False
         self.redundant_experts_num = 0
-        self.seed = 0
         self.quantization = None
         for key, value in args.items():
             if hasattr(self, key):
@@ -665,7 +658,7 @@ class LoadChoices(str, Enum):
 
     DEFAULT = "default"
     # only support qwen3-bf16 now
-    DEFAULT_V1 = "default_v1"
+    NEW_LOADER = "new_loader"
 
 
 class LoadConfig:
@@ -734,7 +727,7 @@ class CacheConfig:
         self.gpu_memory_utilization = 0.9
         self.num_gpu_blocks_override = None
         self.kv_cache_ratio = 0.75
-        self.enc_dec_block_num = 0 if current_platform.is_iluvatar() else 2
+        self.enc_dec_block_num = 2
         self.prealloc_dec_block_slot_num_threshold = 5
         self.cache_dtype = "bfloat16"
         self.model_cfg = None
@@ -818,7 +811,11 @@ class CacheConfig:
         self.dec_token_num = self.enc_dec_block_num * self.block_size
         if self.num_gpu_blocks_override is not None:
             self.total_block_num = self.num_gpu_blocks_override
-            self.prefill_kvcache_block_num = int(self.total_block_num * self.kv_cache_ratio)
+            
+            if envs.ENABLE_V1_KVCACHE_SCHEDULER:
+                self.prefill_kvcache_block_num = self.total_block_num
+            else:
+                self.prefill_kvcache_block_num = int(self.total_block_num * self.kv_cache_ratio)
         else:
             length = num_total_tokens // number_of_tasks
             block_num = (length + self.block_size - 1 + self.dec_token_num) // self.block_size
@@ -831,7 +828,10 @@ class CacheConfig:
         reset gpu block number
         """
         self.total_block_num = num_gpu_blocks
-        self.prefill_kvcache_block_num = int(self.total_block_num * self.kv_cache_ratio)
+        if envs.ENABLE_V1_KVCACHE_SCHEDULER:
+            self.prefill_kvcache_block_num = self.total_block_num
+        else:
+            self.prefill_kvcache_block_num = int(self.total_block_num * self.kv_cache_ratio)
         logger.info(
             f"Reset block num, the total_block_num:{self.total_block_num},"
             f" prefill_kvcache_block_num:{self.prefill_kvcache_block_num}"
