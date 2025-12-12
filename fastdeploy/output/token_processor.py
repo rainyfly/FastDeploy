@@ -209,6 +209,8 @@ class TokenProcessor:
             if token_id != RECOVERY_STOP_SIGNAL:
                 result.outputs.token_ids.append(token_id)
                 task.output_token_ids.append(token_id)
+                if token_id == 0:
+                    llm_logger.error(f"Request: {task_id} generates token_id 0, maybe wrong inference.")
 
             if token_id in task.eos_token_ids or is_prefill or recovery_stop:
                 result.finished = True
@@ -682,7 +684,7 @@ class TokenProcessor:
                         + i * MAX_DRAFT_TOKENS
                         + accept_num[i]
                     ].tolist()
-                if (not recovery_stop) and (len(token_ids) == 0 or token_ids[-1] <= 0):
+                if (not recovery_stop) and (len(token_ids) == 0 or token_ids[-1] < 0):
                     if envs.ENABLE_V1_KVCACHE_SCHEDULER:
                         if task_id in self.resource_manager.to_be_rescheduled_request_id_set:
                             self.resource_manager.reschedule_preempt_task(task_id)
@@ -769,6 +771,8 @@ class TokenProcessor:
                         result.outputs.token_ids.append(token_id)
 
                     task.output_token_ids.append(token_id)
+                    if token_id == 0:
+                        llm_logger.error(f"Request: {task_id} generates token_id 0, maybe wrong inference.")
 
                     if self.use_logprobs:
                         if self.cfg.speculative_config.method:
