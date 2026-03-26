@@ -272,6 +272,7 @@ void GetStopFlagsMulti(const paddle::Tensor &topk_ids,
                        const paddle::Tensor &step_idx,
                        const paddle::Tensor &stop_seqs,
                        const paddle::Tensor &stop_seqs_len,
+                       const paddle::Tensor &preempted_idx,
                        const bool beam_search);
 
 
@@ -355,8 +356,9 @@ void TextImageGatherScatter(paddle::Tensor &input, paddle::Tensor &text_input,
                             paddle::Tensor &text_index,
                             paddle::Tensor &image_index, const bool is_scatter);
 
-paddle::Tensor count_tokens_per_expert_func(const paddle::Tensor &topk_ids,
-                                            int64_t num_experts);
+std::vector<paddle::Tensor> count_tokens_per_expert_func(const paddle::Tensor &topk_ids,
+                                                         int64_t num_experts);
+
 void GetPositionIdsAndMaskEncoderBatch(
     const paddle::Tensor& seq_lens_encoder,
     const paddle::Tensor& seq_lens_decoder,
@@ -628,7 +630,9 @@ void SpeculateUpdate(const paddle::Tensor &seq_lens_encoder,
                        const paddle::Tensor &stop_flags,
                        const paddle::Tensor &seq_lens_this_time,
                        const paddle::Tensor &is_block_step,
-                       const paddle::Tensor &stop_nums);
+                       const paddle::Tensor &stop_nums,
+                       const paddle::Tensor &preempted_idx,
+                       const paddle::Tensor &end_ids);
 
 void SpeculateSetValueByFlagsAndIdx(const paddle::Tensor &pre_ids_all,
                                     const paddle::Tensor &accept_tokens,
