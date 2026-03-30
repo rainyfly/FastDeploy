@@ -289,7 +289,7 @@ def post_process_normal(
         paddle.logical_or(model_output.stop_flags, length_cond),
         model_output.stop_flags,
     )
-
+    print("add debug log")
     if (
         current_platform.is_cuda()
         or current_platform.is_iluvatar()
